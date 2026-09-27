@@ -22,11 +22,11 @@ SOURCE_FILES = [
 PRINCIPLE_KEYWORDS = {
     "ahimsa": ["non-injury", "noninjury", "harm", "hurt", "injur", "violence", "cruel", "kill"],
     "satya": ["truth", "false", "falsehood", "lie", "lying", "honest", "deceit", "untrue"],
-    "dharma": ["duty", "dharma", "righteous", "obligation"],
+    "dharma": ["duty", "dharma", "righteous", "obligation", "task", "one's own work", "own work"],
     "nyaya": ["justice", "judge", "judgment", "law", "punish"],
     "aparigraha": ["greed", "covet", "possess", "desire", "attachment", "renunciation", "aparigraha"],
     "seva": ["service", "serve", "welfare", "sacrifice", "selfless", "seva"],
-    "viveka": ["discrimination", "discern", "wisdom", "knowledge", "ignorance", "viveka"],
+    "viveka": ["discrimination", "discern", "ignorance", "viveka"],
 }
 
 

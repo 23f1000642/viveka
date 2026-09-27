@@ -20,7 +20,7 @@ END_RE = re.compile(r"\*\*\*\s*END OF (THE )?PROJECT GUTENBERG EBOOK.*?\*\*\*", 
 
 BOOK_RE = re.compile(r"^(BOOK|Book)\s+[IVXLC]+\.?\s*$")
 VERSE_RE = re.compile(r"^(\d{1,3})\.\s+(.*)$", re.DOTALL)
-SKIP_RE = re.compile(r"^(Produced by|Transcriber|Etext prepared by)", re.IGNORECASE)
+SKIP_RE = re.compile(r"^(Produced by|Transcriber|Etext prepared by|\[FN#)", re.IGNORECASE)
 
 
 def strip_boilerplate(text: str) -> str:
@@ -44,6 +44,9 @@ def split_records(body: str, source: str):
         para = " ".join(line.strip() for line in para.splitlines()).strip()
         if not para or SKIP_RE.match(para):
             continue
+        # Inline footnote markers ("...death-water.[FN#1]") sit inside
+        # otherwise-real verse text — strip the marker, keep the verse.
+        para = re.sub(r"\[FN#\d+\]", "", para).strip()
         if BOOK_RE.match(para):
             current_book = para.title()
             continue
