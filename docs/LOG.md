@@ -18,3 +18,13 @@ Sutras (Johnston), and the Upanishads (Paramananda, includes Isa). Confirmed
 the Ahimsa and Aparigraha source passages actually exist in these files.
 Arthashastra and Tirukkural aren't on Gutenberg — flagged in
 `data/raw/SOURCES.md` as a manual-download follow-up, not blocking Day 3.
+
+## Day 3 — Sep 27
+Wrote `src/data_prep/clean.py`: strips the Gutenberg header/footer, then
+splits what's left into small tagged records (source, book, verse, text).
+First run leaked a transcriber credit line ("Produced by...") into the
+output as a fake record — added a filter for that pattern and re-ran.
+1,377 records total across the three sources. Numbered sutras/verses keep
+their real number (confirmed against the Ahimsa passage from Day 2); plain
+paragraphs get a sequential `p<N>` id since not every translator numbers
+their text the same way.
