@@ -79,3 +79,30 @@ this data is used for citations in the app (Week 2).
 **Week 1 done.** Data foundation: 3 public-domain sources, 1,340 cleaned
 records, 448 tagged chunks, and a documented set of known limitations to
 carry into the RAG build.
+
+## Day 7 — Sep 28
+Set up a venv and installed `sentence-transformers` + `chromadb` — both
+installed cleanly against Python 3.14 with no dependency conflicts, which
+was worth checking given how new that Python version is. Pinned both to the
+exact versions that worked (`sentence-transformers==6.1.0`,
+`chromadb==1.5.9`) in `requirements.txt`.
+
+Wrote `src/rag/index.py` to embed all 448 chunks (`all-MiniLM-L6-v2`) and
+persist them to a local ChromaDB collection. First run crashed with
+`DuplicateIDError` — turned out chunk IDs only encoded source and verse
+number (`yoga_sutras_johnston:1-2`), not book, and the Yoga Sutras restart
+their verse numbering at 1 in each of its four books (Samadhi, Sadhana,
+Vibhuti, Kaivalya Pada). Fixed by folding the book into the chunk ID
+(`yoga_sutras_johnston:book_i:1-2`) — re-ran `chunk.py`, confirmed all 448
+IDs were unique, then indexing succeeded.
+
+Sanity-tested retrieval with a modern-phrased query ("Is it wrong for an AI
+system to collect more personal data than it needs?") against the raw
+embeddings. The matches were mediocre — cosine distances around 1.6, and
+the closest hits were only loosely on-topic. This is a real, expected
+problem: the corpus is 100-year-old translated scripture, and a query
+phrased in 2026 AI-engineering language sits in a different part of
+embedding space than "renunciation" or "non-possession." Raw semantic
+similarity alone won't be enough — confirms the architecture decision to
+boost retrieval using the principle tags from Day 4/5, which is exactly
+what Day 8's `retriever.py` needs to do.

@@ -51,8 +51,9 @@ def make_chunks(records):
         for i in range(0, len(group), CHUNK_SIZE):
             batch = group[i:i + CHUNK_SIZE]
             text = " ".join(r["text"] for r in batch)
+            book_tag = (book or "intro").replace(" ", "_").lower()
             chunks.append({
-                "chunk_id": f"{source}:{batch[0]['verse']}-{batch[-1]['verse']}",
+                "chunk_id": f"{source}:{book_tag}:{batch[0]['verse']}-{batch[-1]['verse']}",
                 "source": source,
                 "book": book,
                 "verses": [r["verse"] for r in batch],
