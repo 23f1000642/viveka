@@ -106,3 +106,42 @@ embedding space than "renunciation" or "non-possession." Raw semantic
 similarity alone won't be enough — confirms the architecture decision to
 boost retrieval using the principle tags from Day 4/5, which is exactly
 what Day 8's `retriever.py` needs to do.
+
+## Day 8 — Sep 29
+Hit a real environment blocker before writing a single line of retrieval
+logic: `sentence-transformers` imports `scikit-learn` internally, and
+`scikit-learn`'s compiled `murmurhash` DLL got blocked outright by a
+Windows Application Control policy on this machine — confirmed it wasn't
+a fluke by trying a different `sentence-transformers` version and a fresh
+`scikit-learn` build, both blocked the same way. Not something to route
+around by touching security settings, so switched the architecture: local
+embeddings (`sentence-transformers`/`torch`) → hosted embeddings via the
+Voyage AI API (`requests` + an API key, no native binaries at all). Wrote
+`src/rag/embeddings.py` as one shared helper so `index.py` and
+`retriever.py` can't drift onto two different embedding setups.
+
+Second real obstacle: a free Voyage account with no payment method is
+capped at 3 requests/minute and 10K tokens/minute. The first full-corpus
+embed run 429'd. Fixed properly instead of just retrying blind: dropped the
+batch size to 20, added a 21-second pause between requests, and added
+retry-with-backoff (respecting `Retry-After` when present) so a stray 429
+doesn't crash the whole run. Re-indexed all 448 chunks successfully this
+way (~8 minutes, one-time cost).
+
+Wrote `src/rag/retriever.py`: fetches top-20 by embedding similarity, then
+re-ranks by subtracting a fixed boost per principle the query and a chunk
+share — detected using a *second*, separate keyword lexicon tuned to
+modern AI-ethics phrasing ("data collection", "explainable", "addictive"),
+since Day 7 showed the ancient-text lexicon from `chunk.py` doesn't
+transfer to how a real user phrases a question.
+
+Ran the 5 test queries from the architecture plan. 4/5 detected a principle
+and the boost correctly promoted a chunk that actually shared it, with
+plausible results (e.g. "human takes over from automation" → Viveka →
+retrieved a passage specifically about "right discrimination"). One query
+("should a hiring algorithm's decisions be explainable to the applicant")
+detected nothing — the Nyaya keyword list only had the exact phrase
+"explain the decision," which didn't match "explainable." Added
+"explainable" to the list and verified the fix locally (no need to spend
+another rate-limited API call — `detect_query_principles` is pure string
+matching, testable without the network).

@@ -6,12 +6,12 @@ import json
 from pathlib import Path
 
 import chromadb
-from sentence_transformers import SentenceTransformer
+
+from embeddings import embed_texts
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 CHUNKS_PATH = PROJECT_ROOT / "data" / "processed" / "chunks.jsonl"
 CHROMA_DIR = PROJECT_ROOT / "data" / "processed" / "chroma"
-MODEL_NAME = "all-MiniLM-L6-v2"
 COLLECTION_NAME = "viveka_chunks"
 
 
@@ -24,12 +24,9 @@ def main():
     chunks = load_chunks()
     print(f"Loaded {len(chunks)} chunks from {CHUNKS_PATH}")
 
-    print(f"Loading embedding model: {MODEL_NAME} (first run downloads it, ~90MB)")
-    model = SentenceTransformer(MODEL_NAME)
-
     texts = [c["text"] for c in chunks]
-    print("Embedding chunks...")
-    embeddings = model.encode(texts, show_progress_bar=True, batch_size=32).tolist()
+    print(f"Embedding {len(texts)} chunks via Voyage AI (input_type=document)...")
+    embeddings = embed_texts(texts, input_type="document")
 
     client = chromadb.PersistentClient(path=str(CHROMA_DIR))
     # Fresh index each run — chunk.py's output can change, so this script
