@@ -162,3 +162,17 @@ alone still surfaced a strongly on-topic passage — an Upanishad passage
 about false confidence vs. true humility ("he who thinks he knows It,
 knows It not"). Good sign that retrieval holds up even when the tag boost
 doesn't trigger.
+
+## Day 10 — Sep 29
+Wrote `src/rag/generate.py`: wires `retriever.py` (Day 8) and `prompts.py`
+(Day 9) into an actual Claude API call via the `anthropic` SDK, returning
+the answer plus a numbered source list. `anthropic` installed cleanly —
+pure Python + `httpx`, no native-DLL issue like Day 8's `sentence-transformers`.
+
+Blocked on actually running it: a fresh Anthropic API key has no free
+credits — the very first test call returned `invalid_request_error: Your
+credit balance is too low`. Confirmed this is a billing gate, not a setup
+bug, by checking the error came back as a proper 400 from the API (meaning
+auth succeeded) rather than an auth failure. Needs a small credit purchase
+on the Anthropic console before `generate.py` can actually be exercised —
+not blocking the code itself, which is written and ready.
