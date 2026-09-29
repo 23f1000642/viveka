@@ -145,3 +145,20 @@ detected nothing — the Nyaya keyword list only had the exact phrase
 "explainable" to the list and verified the fix locally (no need to spend
 another rate-limited API call — `detect_query_principles` is pure string
 matching, testable without the network).
+
+## Day 9 — Sep 29
+Wrote `src/rag/prompts.py`: the grounded system prompt for Viveka (cite
+retrieved passages by number, say so plainly when the context doesn't
+support an answer, name the classical principle before mapping it to the
+modern one, treat scripture as analogy not literal engineering
+instruction), plus `format_context()`/`build_user_message()` to turn
+`retriever.py`'s output into the numbered citation block the prompt refers
+to.
+
+Sanity-tested with a real retriever call ("is it okay for a chatbot to
+pretend to be more certain than it actually is?"). The query-side keyword
+lexicon didn't fire (no exact phrase match), but raw embedding similarity
+alone still surfaced a strongly on-topic passage — an Upanishad passage
+about false confidence vs. true humility ("he who thinks he knows It,
+knows It not"). Good sign that retrieval holds up even when the tag boost
+doesn't trigger.
