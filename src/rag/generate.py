@@ -9,9 +9,16 @@ retrieval and prompt-formatting logic (retriever.py, prompts.py) doesn't
 know or care which LLM eventually reads its output.
 """
 import os
+import sys
 
 import requests
 from dotenv import load_dotenv
+
+# Windows' default console codepage (cp1252) can't print some characters an
+# LLM commonly emits (curly quotes, em-dashes, narrow no-break spaces) —
+# force UTF-8 stdout so printing an answer doesn't crash.
+if sys.platform == "win32":
+    sys.stdout.reconfigure(encoding="utf-8")
 
 from retriever import retrieve
 from prompts import SYSTEM_PROMPT, build_user_message
@@ -19,7 +26,10 @@ from prompts import SYSTEM_PROMPT, build_user_message
 load_dotenv()
 
 API_URL = "https://api.groq.com/openai/v1/chat/completions"
-MODEL = "llama-3.3-70b-versatile"
+# Groq's free-tier model catalog changes over time — verify against
+# GET https://api.groq.com/openai/v1/models before assuming a model name
+# still exists. "llama-3.3-70b-versatile" 404'd; gpt-oss-120b is current.
+MODEL = "openai/gpt-oss-120b"
 MAX_TOKENS = 800
 
 

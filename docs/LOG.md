@@ -186,3 +186,27 @@ eventually reads their output, which is exactly why that separation was
 worth having. Removed the now-unused `anthropic` package, updated
 `requirements.txt`/`.env.example`/README to match. Waiting on a Groq API
 key to actually run it.
+
+## Day 10 (finished) — Sep 30
+Got the Groq key, ran `generate.py`, hit two more real bugs before it
+worked:
+
+1. `404 model_not_found` on `llama-3.3-70b-versatile` — Groq's free-tier
+   model catalog had moved on. Queried `GET /openai/v1/models` with the
+   actual key instead of guessing again, and switched to `openai/gpt-oss-120b`,
+   the largest currently-available chat model. Noted in the code to check
+   that endpoint again if this model ever disappears too — a hosted
+   provider's catalog is not a stable thing to hardcode against blindly.
+2. `UnicodeEncodeError` printing the answer — the model's output contained
+   a narrow no-break space (` `), and Windows' default console
+   codepage (cp1252) can't represent it. Fixed by forcing UTF-8 stdout on
+   Windows at the top of the script.
+
+**First full grounded answers came back correctly** — all three test
+queries produced a verdict, reasoning citing the right numbered passages,
+and an explicit caveat about not being a binding ethics authority. Example:
+"is it OK for a recommendation system to be designed to be addictive?" →
+correctly invoked Ahimsa, Dharma, Viveka, *and* Aparigraha, citing the
+Yoga Sutras passage about senses being "like unruly horses" for the
+Viveka/discernment point. This is the core RAG pipeline working
+end-to-end: retrieval → grounded generation → cited answer.
