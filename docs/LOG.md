@@ -210,3 +210,12 @@ correctly invoked Ahimsa, Dharma, Viveka, *and* Aparigraha, citing the
 Yoga Sutras passage about senses being "like unruly horses" for the
 Viveka/discernment point. This is the core RAG pipeline working
 end-to-end: retrieval → grounded generation → cited answer.
+
+## Day 11 — Sep 30
+Added proper citation rendering to `generate.py`'s output: a
+`SOURCE_LABELS` map turns the raw slugs (`gita_arnold`) into real names
+("Bhagavad Gita (trans. Edwin Arnold)") for eventual UI display, and
+`_short_quote()` adds a ~160-character excerpt next to each source instead
+of just the verse reference — so a citation reads as "[1] The Upanishads
+(trans. Swami Paramananda), v.p256-p258 — 'he who possesses right
+discrimination...'" instead of a bare reference number.

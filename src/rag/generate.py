@@ -32,6 +32,24 @@ API_URL = "https://api.groq.com/openai/v1/chat/completions"
 MODEL = "openai/gpt-oss-120b"
 MAX_TOKENS = 800
 
+# Human-readable labels for the raw source slugs in chunks.jsonl — the UI
+# (Week 4) shouldn't have to show someone "gita_arnold".
+SOURCE_LABELS = {
+    "gita_arnold": "Bhagavad Gita (trans. Edwin Arnold)",
+    "yoga_sutras_johnston": "Yoga Sutras of Patanjali (trans. Charles Johnston)",
+    "upanishads_paramananda": "The Upanishads (trans. Swami Paramananda)",
+}
+
+
+def _short_quote(text: str, max_len: int = 160) -> str:
+    """A short excerpt for display next to a citation — full text still
+    lives in the chunk itself; this is just for a human to glance at."""
+    text = " ".join(text.split())
+    if len(text) <= max_len:
+        return text
+    truncated = text[:max_len].rsplit(" ", 1)[0]
+    return truncated + "..."
+
 
 def _api_key() -> str:
     key = os.environ.get("GROQ_API_KEY")
@@ -72,8 +90,10 @@ def generate_answer(query: str, top_k: int = 5) -> dict:
                 "n": i,
                 "chunk_id": c["chunk_id"],
                 "source": c["source"],
+                "source_label": SOURCE_LABELS.get(c["source"], c["source"]),
                 "book": c["book"],
                 "verses": c["verses"],
+                "quote": _short_quote(c["text"]),
             }
             for i, c in enumerate(chunks, start=1)
         ],
@@ -93,5 +113,6 @@ if __name__ == "__main__":
         print(f"A: {result['answer']}")
         print("Sources:")
         for s in result["sources"]:
-            print(f"  [{s['n']}] {s['source']} {s['book'] or ''} v.{s['verses']}")
+            print(f"  [{s['n']}] {s['source_label']}, {s['book'] or ''} v.{s['verses']}")
+            print(f"      \"{s['quote']}\"")
         print()
