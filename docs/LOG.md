@@ -176,3 +176,13 @@ bug, by checking the error came back as a proper 400 from the API (meaning
 auth succeeded) rather than an auth failure. Needs a small credit purchase
 on the Anthropic console before `generate.py` can actually be exercised —
 not blocking the code itself, which is written and ready.
+
+## Day 10 (continued) — Sep 30
+Decided against paying for Anthropic credits right now — swapped
+`generate.py` to Groq's free tier (Llama 3.3, OpenAI-compatible chat API)
+instead. This only meant changing the one function that makes the LLM
+call: `retriever.py` and `prompts.py` don't know or care which vendor
+eventually reads their output, which is exactly why that separation was
+worth having. Removed the now-unused `anthropic` package, updated
+`requirements.txt`/`.env.example`/README to match. Waiting on a Groq API
+key to actually run it.

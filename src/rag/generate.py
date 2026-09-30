@@ -1,9 +1,16 @@
-"""Wire retrieval (Day 8) and the grounded prompt (Day 9) to an actual
-Claude API call — the full question -> grounded answer pipeline.
+"""Wire retrieval (Day 8) and the grounded prompt (Day 9) to an LLM call —
+the full question -> grounded answer pipeline.
+
+Uses Groq's OpenAI-compatible chat API (free tier, Llama 3.3) rather than
+Anthropic's — a fresh Anthropic API key ships with zero free credits, and
+proving the RAG architecture works doesn't require a specific model
+vendor. Swapping providers only touched this one function, because the
+retrieval and prompt-formatting logic (retriever.py, prompts.py) doesn't
+know or care which LLM eventually reads its output.
 """
 import os
 
-import anthropic
+import requests
 from dotenv import load_dotenv
 
 from retriever import retrieve
@@ -11,26 +18,45 @@ from prompts import SYSTEM_PROMPT, build_user_message
 
 load_dotenv()
 
-MODEL = "claude-sonnet-5"
+API_URL = "https://api.groq.com/openai/v1/chat/completions"
+MODEL = "llama-3.3-70b-versatile"
 MAX_TOKENS = 800
+
+
+def _api_key() -> str:
+    key = os.environ.get("GROQ_API_KEY")
+    if not key:
+        raise RuntimeError(
+            "GROQ_API_KEY not set. Create a free key at https://console.groq.com/ "
+            "and add it to .env as GROQ_API_KEY=... (see .env.example)."
+        )
+    return key
 
 
 def generate_answer(query: str, top_k: int = 5) -> dict:
     detected_principles, chunks = retrieve(query, top_k=top_k)
     user_message = build_user_message(query, chunks)
 
-    client = anthropic.Anthropic()  # reads ANTHROPIC_API_KEY from the environment
-    response = client.messages.create(
-        model=MODEL,
-        max_tokens=MAX_TOKENS,
-        system=SYSTEM_PROMPT,
-        messages=[{"role": "user", "content": user_message}],
+    resp = requests.post(
+        API_URL,
+        headers={"Authorization": f"Bearer {_api_key()}"},
+        json={
+            "model": MODEL,
+            "max_tokens": MAX_TOKENS,
+            "messages": [
+                {"role": "system", "content": SYSTEM_PROMPT},
+                {"role": "user", "content": user_message},
+            ],
+        },
+        timeout=60,
     )
+    resp.raise_for_status()
+    answer = resp.json()["choices"][0]["message"]["content"]
 
     return {
         "query": query,
         "detected_principles": sorted(detected_principles),
-        "answer": response.content[0].text,
+        "answer": answer,
         "sources": [
             {
                 "n": i,
