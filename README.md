@@ -33,8 +33,9 @@ for both stories.
 
 ## Status
 
-🚧 Week 2 in progress — RAG pipeline (embedding + retrieval) working.
-Daily log in [`docs/LOG.md`](docs/LOG.md).
+✅ Week 2 done — the full RAG pipeline works end-to-end: retrieval,
+grounded generation, and cited answers. Next up: Week 3, the Ethics
+Scorecard. Daily log in [`docs/LOG.md`](docs/LOG.md).
 
 ## Setup
 

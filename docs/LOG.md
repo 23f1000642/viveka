@@ -219,3 +219,35 @@ Added proper citation rendering to `generate.py`'s output: a
 of just the verse reference — so a citation reads as "[1] The Upanishads
 (trans. Swami Paramananda), v.p256-p258 — 'he who possesses right
 discrimination...'" instead of a bare reference number.
+
+## Day 12 — Week 2 retrospective — Sep 30
+**Week 2 done: the RAG pipeline works end-to-end**, question to cited
+answer. What got built:
+
+- `embeddings.py` — Voyage AI embeddings, rate-limit-safe (20/batch, 21s
+  apart, retry-with-backoff on 429)
+- `index.py` — embeds all 448 chunks into a persistent ChromaDB collection
+- `retriever.py` — top-20 by embedding similarity, re-ranked by a
+  principle-tag boost using a *second* keyword lexicon tuned to modern
+  AI-ethics phrasing (separate from chunk.py's ancient-text lexicon)
+- `prompts.py` — the grounded system prompt (cite-by-number, say "I don't
+  know" over inventing a citation, name the classical principle before
+  mapping it)
+- `generate.py` — retrieval + prompt + Groq API call (`openai/gpt-oss-120b`),
+  returning an answer plus human-labeled, quoted citations
+
+What this week was actually about, underneath the RAG mechanics: three
+real infrastructure fights, each solved by changing the plan instead of
+forcing the original one — a local ML library blocked by Windows security
+policy (→ hosted embeddings), a paid API with no free credits (→ a free
+one), and a model name that stopped existing between when the plan was
+written and when the code ran (→ checking the live model list instead of
+assuming). None of these were code bugs in the usual sense; all three are
+exactly the kind of thing a job actually involves.
+
+**Verified this session:** local `git log` and `origin/main` point at the
+identical commit (`ef4c445`) — nothing uncommitted, nothing unpushed.
+14 commits since Day 0.
+
+Next: Week 3 — the Ethics Scorecard (score an AI feature against all seven
+principles) and a real evaluation set.
