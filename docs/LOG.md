@@ -251,3 +251,18 @@ identical commit (`ef4c445`) — nothing uncommitted, nothing unpushed.
 
 Next: Week 3 — the Ethics Scorecard (score an AI feature against all seven
 principles) and a real evaluation set.
+
+## Day 13 — Oct 1
+Designed the Ethics Scorecard's data contract in `src/scorecard/schema.py`:
+a JSON schema requiring exactly one entry per principle (score 1-5,
+rationale, mitigation) plus an overall summary, with `validate_scorecard()`
+checking any proposed scorecard against it — including a missing-principle
+check the raw JSON Schema can't express on its own (JSON Schema can bound
+array length but not "one of each enum value present").
+
+Also wrote `SCORE_SCALE`: a one-line meaning for each of 1-5, so a score
+isn't just a number the model picked — it's anchored to a definition
+(score.py's prompt, Day 14, will include this so two runs score the same
+feature consistently instead of drifting). Tested the validator against a
+valid scorecard (no errors) and a deliberately broken one (score out of
+range + six missing principles) — both caught correctly.
