@@ -308,3 +308,39 @@ disagreements are as informative as agreements.
 Coverage of `expected_low` per principle: ahimsa 7, nyaya 7, satya 6,
 dharma 6, viveka 5, aparigraha 4, **seva 2** — thinnest, so Seva results
 will be the least trustworthy signal in the first eval run.
+
+## Day 16 — Oct 2
+Wrote `src/eval/run_eval.py` and ran all 19 cases through the scorecard.
+Results append to `data/eval/results.jsonl` one case at a time and a re-run
+only retries failures — that mattered immediately: 4 of 19 cases died on
+`ConnectionResetError` (the remote end dropped the connection mid-run), and
+the retry picked up exactly those. One of the four (`fitness-data-hoard`)
+failed in the middle of the run and I only noticed because the retry said
+"4 to run" instead of the 3 I'd seen at the tail — a reminder to grep a long
+run's output for `FAILED` rather than trust its last few lines.
+
+**What the numbers say** (full detail in `docs/EVAL_RESULTS.md`):
+
+- Expected-low principles flagged: 34/37 (92%). Control cases with a false
+  alarm: 0/3 (mean score 4.19, vs 1.89 on problem cases). Good.
+- But **flag precision is only 34/78 (44%)**: on problem cases the model
+  flags ~5 of 7 principles where I expected ~2. The 92% recall is partly
+  just a model that flags nearly everything on anything bad-sounding. I
+  added the precision line to the report because recall alone was flattering
+  the scorecard. Many "extra" flags may be legitimate (seva/viveka on
+  chatbot-overclaim is arguable) — that's what the hand grading is for.
+- **A concrete faithfulness failure:** `predictive-policing`. The description
+  says outright that the arrest records "come mostly from neighborhoods that
+  were already heavily patrolled" — a textbook fairness (Nyaya) problem —
+  yet Nyaya scored 3 with the rationale "the description provides no
+  information about fairness." The model scored six of seven principles 3 on
+  that case by applying the prompt's "if the description says nothing, score
+  3" rule, including to a principle the description speaks to directly. This
+  is my reading; it needs checking by hand (see `docs/EVAL_HANDGRADES.md`).
+- Same prompt, two behaviours: near-neutral 3s on predictive-policing, but
+  4-6 flags on `fake-human-sales-calls` and `warehouse-robot-accountability`.
+  That inconsistency, more than the recall figure, is what Day 17 should
+  chase.
+
+Added `--show <case-id>` to print one scorecard in readable form for the
+hand-grading step.
