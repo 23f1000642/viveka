@@ -288,3 +288,23 @@ attempt 1 and the scores read as sensible (storing every shopper's face for
 description doesn't address it", per the prompt's no-inventing rule).
 Passages were retrieved but the rationales didn't cite them — fine for now
 (citation is optional in the prompt), worth revisiting in the eval set.
+
+## Day 15 — Oct 2
+Wrote the evaluation set: 19 realistic AI-feature descriptions in
+`data/eval/dilemmas.jsonl` — 15 `problem` cases (hiring screener,
+predictive policing, teen ad targeting, ER triage, exam proctoring...), 1
+`mixed` case (a mental-health chatbot that is good on almost everything
+except indefinite transcript retention), and 3 `control` cases (a
+mammogram assistant, an on-device spam filter, a library book widget)
+that were deliberately designed well.
+
+Each entry carries `expected_low`: the principles a thoughtful reviewer
+would expect to score 2 or below. The controls are the important part —
+without them, a scorecard that reflexively scores everything low would
+look great on the problem cases. These labels are *my judgment calls*, not
+ground truth; Day 16's run is meant to be graded by hand against them, and
+disagreements are as informative as agreements.
+
+Coverage of `expected_low` per principle: ahimsa 7, nyaya 7, satya 6,
+dharma 6, viveka 5, aparigraha 4, **seva 2** — thinnest, so Seva results
+will be the least trustworthy signal in the first eval run.
