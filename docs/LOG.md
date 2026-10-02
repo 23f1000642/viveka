@@ -266,3 +266,25 @@ isn't just a number the model picked — it's anchored to a definition
 feature consistently instead of drifting). Tested the validator against a
 valid scorecard (no errors) and a deliberately broken one (score out of
 range + six missing principles) — both caught correctly.
+
+## Day 14 — Oct 2
+Wrote `src/scorecard/score.py`. Design choices worth remembering:
+
+- **One retrieval, not seven.** Scoring each principle with its own
+  retrieval would mean seven embedding calls, and the free Voyage tier
+  allows 3 requests/minute. One retrieval of six passages is shared across
+  all seven principles instead.
+- **Validate, then retry with the errors.** The model's JSON goes through
+  `validate_scorecard()`; if it fails, the exact problems are sent back
+  ("missing principles: [...]") and the model corrects itself, up to three
+  attempts, then raises. A broken scorecard never reaches a user.
+- `API_URL`, `MODEL` and the key lookup are imported from `generate.py`
+  instead of copied — the model name has already gone stale once, so it
+  should live in exactly one place.
+
+First run on a facial-recognition-in-retail description validated on
+attempt 1 and the scores read as sensible (storing every shopper's face for
+90 days → Aparigraha 2/5; no mention of human review → Viveka 3/5 with "the
+description doesn't address it", per the prompt's no-inventing rule).
+Passages were retrieved but the rationales didn't cite them — fine for now
+(citation is optional in the prompt), worth revisiting in the eval set.
