@@ -134,7 +134,24 @@ def build_report() -> str:
     return "\n".join(out) + "\n"
 
 
+def show(case_id: str) -> None:
+    dilemmas = {d["id"]: d for d in load_jsonl(DILEMMAS)}
+    r = latest_results().get(case_id)
+    if case_id not in dilemmas or r is None or "error" in r:
+        sys.exit(f"no scored result for '{case_id}' (known ids: {', '.join(dilemmas)})")
+    d = dilemmas[case_id]
+    print(f"{case_id} ({d['kind']}), expected low: {', '.join(d['expected_low']) or '-'}\n")
+    print(d["description"], "\n")
+    for p in PRINCIPLES:
+        s = r["scores"][p]
+        print(f"{p} {s['score']}/5\n  why: {s['rationale']}\n  fix: {s['mitigation']}")
+    print(f"\nsummary: {r['overall_summary']}")
+
+
 if __name__ == "__main__":
+    if "--show" in sys.argv:
+        show(sys.argv[sys.argv.index("--show") + 1])
+        sys.exit()
     if "--report-only" not in sys.argv:
         run_all()
     REPORT.write_text(build_report(), encoding="utf-8")
