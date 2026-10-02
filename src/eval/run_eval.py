@@ -17,6 +17,11 @@ from collections import defaultdict
 from pathlib import Path
 from statistics import mean
 
+# Model rationales contain characters (non-breaking hyphens) that Windows'
+# default console codepage can't print; --show would crash without this.
+if sys.platform == "win32":
+    sys.stdout.reconfigure(encoding="utf-8")
+
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "src" / "scorecard"))
 
