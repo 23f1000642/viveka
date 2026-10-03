@@ -319,7 +319,7 @@ failed in the middle of the run and I only noticed because the retry said
 "4 to run" instead of the 3 I'd seen at the tail — a reminder to grep a long
 run's output for `FAILED` rather than trust its last few lines.
 
-**What the numbers say** (full detail in `docs/EVAL_RESULTS.md`):
+**What the numbers say** (full detail in `docs/EVAL_RESULTS_v1.md`):
 
 - Expected-low principles flagged: 34/37 (92%). Control cases with a false
   alarm: 0/3 (mean score 4.19, vs 1.89 on problem cases). Good.
@@ -344,3 +344,41 @@ run's output for `FAILED` rather than trust its last few lines.
 
 Added `--show <case-id>` to print one scorecard in readable form for the
 hand-grading step.
+
+## Day 17 — Oct 3
+Tried to fix the two v1 problems by making the model quote its evidence:
+every score now carries a verbatim quote from the description (or `none
+stated`, which forces a 3), and `schema.py` rejects invented quotes. Full
+write-up with before/after table in `docs/CHANGELOG.md`.
+
+The honest summary is that **it did not move the headline numbers**:
+recall 92% → 92%, precision 44% → 45%, controls still 0/3 false alarms.
+What it bought was auditability (31 explicit abstentions; every score tied
+to a real quote), not accuracy.
+
+Three things I learned that are more useful than the numbers:
+
+1. **My first fix didn't work, and the reason was the prompt's own
+   definition.** `predictive-policing` Nyaya stayed at 3 / `none stated`
+   because the prompt defined Nyaya as "inspectable and contestable" and the
+   description said nothing about either — it talked about biased data. The
+   model followed the definition literally. Widening the definition fixed
+   that case.
+2. **A verified quote isn't a relevant quote.** One sentence ("sends extra
+   patrols to the top-ranked areas") was cited as evidence for four
+   different principles. My validator proves the quote exists; it cannot
+   prove it supports the principle.
+3. **Variance is larger than any effect I'm trying to measure.** Same
+   input, three runs, three different scorecards (six principles at 3;
+   seven flagged; two flagged). With one run per case, a 1-point change in
+   precision means nothing. Measuring variance (3 runs per case) is the
+   first thing to do before any further prompt change.
+
+Not done: hand grading (still the user's), and the `expected_low` labels
+that the `none stated` rule now contradicts. Also tuned on the same 19 cases
+I evaluate on, so v2's numbers are likely optimistic.
+
+Process slip worth noting: I launched the full eval chained to the commit
+with its output sent to `/dev/null`, which would have hidden failures. The
+report still caught the one real failure (a Groq 429 on
+`insurance-auto-denial`), and the resume logic retried just that case.
