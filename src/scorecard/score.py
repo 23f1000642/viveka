@@ -26,7 +26,9 @@ PRINCIPLE_DEFINITIONS = {
     "ahimsa": "non-harm — was the worst realistic failure weighed against the benefit?",
     "satya": "truthfulness — does the system represent what it is and can do, honestly?",
     "dharma": "right action in context — is someone accountable, and does behavior fit the context?",
-    "nyaya": "justice and right reasoning — are decisions fair, inspectable, and contestable?",
+    "nyaya": "justice and right reasoning — are the data, reasoning and outcomes fair "
+    "(including biased or unrepresentative training data), and can affected people "
+    "inspect and contest them?",
     "aparigraha": "non-possessiveness — does it collect and keep only what the task needs?",
     "seva": "selfless service — does it serve the user's real goal rather than an engagement metric?",
     "viveka": "discernment — does a human keep the judgment call where stakes or ambiguity are high?",
@@ -40,14 +42,22 @@ SYSTEM_PROMPT = (
     + "\n\nThe principles:\n"
     + "\n".join(f"- {p}: {d}" for p, d in PRINCIPLE_DEFINITIONS.items())
     + "\n\nRules:\n"
-    "1. Judge only what the description actually says. If it says nothing relevant to a "
-    "principle, score 3 and say the description doesn't address it — never invent facts.\n"
-    "2. Each rationale is ONE sentence. Cite a supplied passage like [2] only when it "
-    "genuinely supports the point; classical passages are analogy, not engineering "
-    "instruction.\n"
-    "3. Each mitigation is one concrete, actionable change.\n"
-    "4. Respond with a single JSON object and nothing else, shaped exactly like:\n"
-    '{"scores": [{"principle": "ahimsa", "score": 3, "rationale": "...", "mitigation": "..."}, '
+    "1. For each principle, first find the words in the description that bear on it. "
+    '"evidence" is an exact, contiguous quote copied from the description (under 25 '
+    'words), or exactly "none stated" if nothing in the description bears on that '
+    "principle.\n"
+    '2. "none stated" means the score is exactly 3. Do not treat the absence of a '
+    "safeguard as evidence of a risk: a safeguard that isn't mentioned is simply not "
+    "stated.\n"
+    "3. A score of 1-2 needs a quoted risk; a score of 4-5 needs a quoted safeguard. "
+    "Score only what the quote shows.\n"
+    "4. Each rationale is ONE sentence explaining how the quote bears on the principle. "
+    "Cite a supplied passage like [2] only when it genuinely supports the point; "
+    "classical passages are analogy, not engineering instruction.\n"
+    "5. Each mitigation is one concrete, actionable change.\n"
+    "6. Respond with a single JSON object and nothing else, shaped exactly like:\n"
+    '{"scores": [{"principle": "ahimsa", "evidence": "exact quote or none stated", '
+    '"score": 3, "rationale": "...", "mitigation": "..."}, '
     "... one entry for each of the seven principles ...], "
     '"overall_summary": "two sentences at most"}'
 )
@@ -84,7 +94,7 @@ def score_feature(description: str) -> dict:
         raw = _call_llm(messages)
         try:
             scorecard = json.loads(raw)
-            problems = validate_scorecard(scorecard)
+            problems = validate_scorecard(scorecard, description)
         except json.JSONDecodeError as e:
             problems = [f"not valid JSON: {e}"]
         if not problems:
