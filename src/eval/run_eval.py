@@ -149,7 +149,8 @@ def show(case_id: str) -> None:
     print(d["description"], "\n")
     for p in PRINCIPLES:
         s = r["scores"][p]
-        print(f"{p} {s['score']}/5\n  why: {s['rationale']}\n  fix: {s['mitigation']}")
+        print(f"{p} {s['score']}/5\n  evidence: {s.get('evidence', '-')}\n"
+              f"  why: {s['rationale']}\n  fix: {s['mitigation']}")
     print(f"\nsummary: {r['overall_summary']}")
 
 
