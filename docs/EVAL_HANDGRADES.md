@@ -4,6 +4,13 @@ The automated numbers in `EVAL_RESULTS.md` only show whether the scorecard
 flagged what I expected. They cannot show whether a rationale is *true to
 the description*. That has to be read by a person.
 
+**Grade the v2 scorecards** (what `--show` prints now). Each score has an
+`evidence` quote; a code check confirms the quote is really in the
+description, so for faithfulness the thing left to judge is whether the quote
+actually supports the principle it's attached to. The same quote being used
+for several principles at once is the pattern to watch for. See
+`CHANGELOG.md` for why.
+
 To read one case:
 
 ```
@@ -32,8 +39,8 @@ Chosen to cover the interesting behaviours, not a random sample.
 
 | case | why this one | faithfulness (0-2) | usefulness (0-2) | notes |
 |---|---|---|---|---|
-| predictive-policing | the description states a fairness problem outright, yet Nyaya scored 3: check that claim | | | |
-| worker-surveillance | all 7 principles flagged: is that earned? | | | |
+| predictive-policing | v1 scored Nyaya 3 despite a stated fairness problem; v2 flagged it. Does each quote really support the principle it's attached to? | | | |
+| worker-surveillance | all 7 principles flagged: is that earned? Also: Ahimsa's rationale says "covert" collection. Is "covert" in the description? | | | |
 | fake-human-sales-calls | 4 flags beyond what was expected | | | |
 | social-credit-lending | missed Satya; flagged 5 unexpected | | | |
 | mental-health-chatbot | the only `mixed` case: does it separate the good from the bad? | | | |
