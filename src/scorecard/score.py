@@ -21,6 +21,7 @@ from llm import API_URL, MODEL, api_key
 from prompts import format_context
 from retriever import retrieve
 from schema import PRINCIPLES, SCORE_SCALE, validate_scorecard
+from scope import OutOfScope, check_scope
 
 MAX_TOKENS = 3000
 MAX_ATTEMPTS = 3
@@ -83,6 +84,10 @@ def _call_llm(messages: list[dict]) -> str:
 
 
 def score_feature(description: str) -> dict:
+    category, reply = check_scope(description)
+    if reply is not None:
+        raise OutOfScope(category, reply)
+
     _, chunks = retrieve(description, top_k=6)
     user_message = (
         f"Passages:\n{format_context(chunks)}\n\nAI feature to audit:\n{description}"

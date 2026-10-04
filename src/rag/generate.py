@@ -21,6 +21,7 @@ if sys.platform == "win32":
 from llm import API_URL, MODEL, api_key
 from retriever import retrieve
 from prompts import SYSTEM_PROMPT, build_user_message
+from scope import check_scope
 
 MAX_TOKENS = 800
 
@@ -44,6 +45,16 @@ def _short_quote(text: str, max_len: int = 160) -> str:
 
 
 def generate_answer(query: str, top_k: int = 5) -> dict:
+    category, reply = check_scope(query)
+    if reply is not None:  # not an AI-ethics question: skip retrieval entirely
+        return {
+            "query": query,
+            "scope": category,
+            "detected_principles": [],
+            "answer": reply,
+            "sources": [],
+        }
+
     detected_principles, chunks = retrieve(query, top_k=top_k)
     user_message = build_user_message(query, chunks)
 
@@ -65,6 +76,7 @@ def generate_answer(query: str, top_k: int = 5) -> dict:
 
     return {
         "query": query,
+        "scope": "in_scope",
         "detected_principles": sorted(detected_principles),
         "answer": answer,
         "sources": [
