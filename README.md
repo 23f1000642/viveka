@@ -34,8 +34,13 @@ for both stories.
 ## Status
 
 ✅ Week 2 done — the full RAG pipeline works end-to-end: retrieval,
-grounded generation, and cited answers. Next up: Week 3, the Ethics
-Scorecard. Daily log in [`docs/LOG.md`](docs/LOG.md).
+grounded generation, and cited answers.
+
+🚧 Week 3 nearly done — the Ethics Scorecard (7 principles, evidence-quoted
+and validated), a 19-case evaluation set with results and a changelog, and a
+scope guard that routes non-AI-ethics messages (including someone describing
+their own distress) to a fixed, kind reply instead of the advisor. Next: the
+Streamlit UI. Daily log in [`docs/LOG.md`](docs/LOG.md).
 
 ## Setup
 
