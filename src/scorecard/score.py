@@ -12,9 +12,12 @@ from pathlib import Path
 
 import requests
 
+if sys.platform == "win32":
+    sys.stdout.reconfigure(encoding="utf-8")  # model text has characters cp1252 can't print
+
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "rag"))
 
-from generate import API_URL, MODEL, _api_key  # reuse so the model name lives in one place
+from llm import API_URL, MODEL, api_key
 from prompts import format_context
 from retriever import retrieve
 from schema import PRINCIPLES, SCORE_SCALE, validate_scorecard
@@ -66,7 +69,7 @@ SYSTEM_PROMPT = (
 def _call_llm(messages: list[dict]) -> str:
     resp = requests.post(
         API_URL,
-        headers={"Authorization": f"Bearer {_api_key()}"},
+        headers={"Authorization": f"Bearer {api_key()}"},
         json={
             "model": MODEL,
             "max_tokens": MAX_TOKENS,

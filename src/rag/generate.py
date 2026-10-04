@@ -8,11 +8,9 @@ vendor. Swapping providers only touched this one function, because the
 retrieval and prompt-formatting logic (retriever.py, prompts.py) doesn't
 know or care which LLM eventually reads its output.
 """
-import os
 import sys
 
 import requests
-from dotenv import load_dotenv
 
 # Windows' default console codepage (cp1252) can't print some characters an
 # LLM commonly emits (curly quotes, em-dashes, narrow no-break spaces) —
@@ -20,16 +18,10 @@ from dotenv import load_dotenv
 if sys.platform == "win32":
     sys.stdout.reconfigure(encoding="utf-8")
 
+from llm import API_URL, MODEL, api_key
 from retriever import retrieve
 from prompts import SYSTEM_PROMPT, build_user_message
 
-load_dotenv()
-
-API_URL = "https://api.groq.com/openai/v1/chat/completions"
-# Groq's free-tier model catalog changes over time — verify against
-# GET https://api.groq.com/openai/v1/models before assuming a model name
-# still exists. "llama-3.3-70b-versatile" 404'd; gpt-oss-120b is current.
-MODEL = "openai/gpt-oss-120b"
 MAX_TOKENS = 800
 
 # Human-readable labels for the raw source slugs in chunks.jsonl — the UI
@@ -51,23 +43,13 @@ def _short_quote(text: str, max_len: int = 160) -> str:
     return truncated + "..."
 
 
-def _api_key() -> str:
-    key = os.environ.get("GROQ_API_KEY")
-    if not key:
-        raise RuntimeError(
-            "GROQ_API_KEY not set. Create a free key at https://console.groq.com/ "
-            "and add it to .env as GROQ_API_KEY=... (see .env.example)."
-        )
-    return key
-
-
 def generate_answer(query: str, top_k: int = 5) -> dict:
     detected_principles, chunks = retrieve(query, top_k=top_k)
     user_message = build_user_message(query, chunks)
 
     resp = requests.post(
         API_URL,
-        headers={"Authorization": f"Bearer {_api_key()}"},
+        headers={"Authorization": f"Bearer {api_key()}"},
         json={
             "model": MODEL,
             "max_tokens": MAX_TOKENS,
