@@ -382,3 +382,51 @@ Process slip worth noting: I launched the full eval chained to the commit
 with its output sent to `/dev/null`, which would have hidden failures. The
 report still caught the one real failure (a Groq 429 on
 `insurance-auto-denial`), and the resume logic retried just that case.
+
+## Day 18 — Oct 4
+Used the buffer day for a safety gap I found by typing something real into
+the app. Asked "I am feeling depressed because no one is giving me
+attention", the advisor answered in full AI-ethics voice, with verses, and
+told the person their problem was a "cycle of attention-seeking". Nothing in
+the project knew that message wasn't an AI-ethics question. For a public demo
+that is a real defect, and it contradicts the project's own Ahimsa principle.
+
+**What I built** (all in `src/rag/`):
+
+- `scope.py`: a classifier that sorts each message into `in_scope`,
+  `personal_distress` or `off_topic` *before* any retrieval, so out-of-scope
+  input also skips the rate-limited embedding call.
+- **The two non-answers are fixed text, not model output.** Someone who is
+  struggling should get a message that was reviewed in advance, not whatever
+  the model says that day. It acknowledges them, says plainly what this tool
+  is not, points to a person they trust, and to a crisis line directory
+  (findahelpline.com) rather than a country-specific number I can't verify.
+- **Deliberate bias:** unsure between in-scope and off-topic means in-scope
+  (don't turn away a legitimate user); unsure whether it's distress means
+  distress (a kind reply in the wrong place costs far less than ignoring
+  someone). A message that asks about an AI system stays in scope even if the
+  writer mentions feelings, since "I'm lonely and use a companion app, should
+  apps be allowed to do that?" is a legitimate design question.
+- `generate_answer` returns the fixed reply with `scope` set and no sources;
+  `score_feature` raises `OutOfScope`, because a scorecard has no place to
+  put a text reply.
+- Refactor first, as its own commit: `llm.py` now holds the provider URL,
+  model name and key lookup for `generate.py`, `score.py` and `scope.py`.
+  Doing that dropped the stdout-UTF-8 fix `score.py` had been getting
+  indirectly through importing `generate`; re-added it directly.
+
+**Result:** `run_scope_eval.py` on 21 cases (8 in-scope, 6 distress, 7
+off-topic, including prompt-injection, a borderline personal+AI case and 3
+Hinglish messages): 21/21, with 0 distress messages missed and 0 legitimate
+questions blocked. Also re-ran the original message end to end: it now gets
+the kind reply, no sources, no retrieval.
+
+**Limits, stated plainly:**
+- I wrote both the classifier prompt and the test cases, so the cases fit my
+  own idea of the categories. 21/21 on a set the author wrote is weak
+  evidence. It should be tried against messages I didn't think of.
+- The fixed replies are English only. The classifier handled Hinglish input,
+  but a Hinglish message gets an English reply.
+- If the classifier's JSON is unreadable it falls back to `in_scope`, which in
+  the worst case reproduces the old behaviour.
+- Single messages only; no conversation context.
