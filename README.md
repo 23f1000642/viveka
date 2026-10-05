@@ -41,6 +41,9 @@ scope guard that routes non-AI-ethics messages (including someone describing
 their own distress) to a fixed, kind reply instead of the advisor. Next: the
 Streamlit UI. Daily log in [`docs/LOG.md`](docs/LOG.md).
 
+
+wait for UI deoplyment part will back soon 
+
 ## Setup
 
 ```bash
