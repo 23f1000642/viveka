@@ -32,8 +32,7 @@ need to change to swap providers again). See `docs/LOG.md` (Days 8 and 10)
 for both stories.
 
 ## Status
-
-✅ Week 2 done — the full RAG pipeline works end-to-end: retrieval,
+Till now i have reached at  the full RAG pipeline works end-to-end: retrieval,
 grounded generation, and cited answers.
 
 🚧 Week 3 nearly done — the Ethics Scorecard (7 principles, evidence-quoted
