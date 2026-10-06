@@ -430,3 +430,56 @@ the kind reply, no sources, no retrieval.
 - If the classifier's JSON is unreadable it falls back to `in_scope`, which in
   the worst case reproduces the old behaviour.
 - Single messages only; no conversation context.
+
+## Day 19 — Oct 6
+Started the Streamlit UI (`app.py`: chat input, answer, principles
+detected, and a "Sources" expander showing each citation with translator,
+book, verse and quote). Getting it to run turned into a bigger job than the
+UI itself.
+
+**The app crashed on import: `ImportError: DLL load failed while importing
+cygrpc: An Application Control policy has blocked this file.`** That is the
+same Windows policy as Day 8, but it hit a different package: `grpc`, pulled
+in by ChromaDB's telemetry code. `grpc` was installed on Sep 28 and imported
+fine through Oct 4. So this machine's policy is **not stable over time**;
+a compiled dependency that works today can be blocked later. Checked what
+else was affected: numpy, pandas, pyarrow, pydantic_core, rpds, jsonschema
+and streamlit all still import. Only `grpc` was blocked.
+
+**Decision: drop ChromaDB instead of working around gRPC.** The corpus is
+448 chunks. A vector database was overkill, and its dependency tree
+(gRPC, OpenTelemetry, Kubernetes client...) was the actual problem. Wrote
+`src/rag/vectorstore.py`, standard library only: embeddings in one float32
+file, text and metadata in one JSON file, and a query scans every vector
+(~230k multiplications, tens of milliseconds). Nothing native, so nothing
+for a policy to block. It uses squared L2 distance, the number ChromaDB
+returned by default, so the retriever's boost value keeps its meaning.
+Side benefit: the whole index is 1.4 MB, so it is committed to the repo
+(`data/index/`) and a deployed copy needs no 8-minute embedding job.
+
+**Checked it is equivalent, not just working.** Rebuilt the index (re-embedded
+all 448 chunks) and re-ran the Day 8 queries: 4 of the 5 gave the same top
+chunk with the same raw distance and adjusted score to 3 decimals as the
+ChromaDB numbers logged on Day 8. The fifth differs because the "explainable"
+keyword fix landed after that log entry; its new top chunk is the one the
+later hiring-question answers already cited.
+
+**Tested the UI in a browser, not just the code:** a normal question gives a
+cited answer with a working Sources expander, and the distress message from
+Day 18 gets the fixed kind reply with no verses and no sources, instantly
+(the guard skips retrieval).
+
+**Problem the UI made visible:** citations like `Book Ii, verse(s) 7,p91,8`
+and `p242,51,p243`. That is the Day 5 issue (numbered sutras interleaved with
+unnumbered commentary, so a chunk's verse list mixes real sutra numbers with
+paragraph counters). Harmless in a log file, but it looks wrong to a user
+and is exactly what citations must not do. Not fixed yet.
+
+Process notes: `git push` was rejected because the remote had 2 README commits
+(made from the GitHub web editor). Integrated with `git pull --rebase
+--autostash` rather than forcing anything, and left that README wording as
+written.
+
+Still ahead for the UI: the scorecard tab, example questions, proper error
+handling (an unhandled exception currently shows a raw traceback), and
+deployment.
