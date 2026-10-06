@@ -7,15 +7,8 @@ space on vocabulary alone. So this file keeps a SEPARATE keyword lexicon —
 modern AI-ethics terms, not the ancient-text terms chunk.py uses — just to
 guess which of the seven principles a query is actually about.
 """
-from pathlib import Path
-
-import chromadb
-
 from embeddings import embed_texts
-
-PROJECT_ROOT = Path(__file__).resolve().parents[2]
-CHROMA_DIR = PROJECT_ROOT / "data" / "processed" / "chroma"
-COLLECTION_NAME = "viveka_chunks"
+from vectorstore import Store
 
 # Modern AI/tech-ethics vocabulary -> principle. Deliberately separate from
 # chunk.py's PRINCIPLE_KEYWORDS, which is tuned to 100-year-old scripture
@@ -30,15 +23,14 @@ QUERY_KEYWORDS = {
     "viveka": ["human oversight", "human in the loop", "automat", "autonomous decision", "override"],
 }
 
-_collection = None
+_store = None
 
 
-def _get_collection():
-    global _collection
-    if _collection is None:
-        client = chromadb.PersistentClient(path=str(CHROMA_DIR))
-        _collection = client.get_collection(COLLECTION_NAME)
-    return _collection
+def _get_store() -> Store:
+    global _store
+    if _store is None:
+        _store = Store()
+    return _store
 
 
 def detect_query_principles(query: str):
@@ -50,16 +42,14 @@ def retrieve(query: str, top_k: int = 5, fetch_k: int = 20, boost: float = 0.25)
     """Fetch fetch_k candidates by raw similarity, then re-rank the top_k by
     subtracting `boost` from a candidate's distance for every principle it
     shares with the query (lower distance = more similar = ranked higher)."""
-    collection = _get_collection()
+    store = _get_store()
 
     query_principles = set(detect_query_principles(query))
-    q_emb = embed_texts([query], input_type="query")
-    results = collection.query(query_embeddings=q_emb, n_results=fetch_k)
+    q_emb = embed_texts([query], input_type="query")[0]
 
     candidates = []
-    for doc, meta, dist, chunk_id in zip(
-        results["documents"][0], results["metadatas"][0], results["distances"][0], results["ids"][0]
-    ):
+    for hit in store.query(q_emb, fetch_k):
+        doc, meta, dist, chunk_id = hit["document"], hit["metadata"], hit["distance"], hit["id"]
         chunk_principles = set(meta["principles"].split(",")) if meta["principles"] else set()
         overlap = len(query_principles & chunk_principles)
         adjusted_score = dist - boost * overlap

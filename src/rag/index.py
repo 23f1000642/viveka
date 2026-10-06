@@ -1,18 +1,19 @@
-"""Embed every chunk from chunk.py and persist the vectors to a local
-ChromaDB collection. This is the "index" that retriever.py (next) searches
-against — build it once, then retriever.py just queries it.
+"""Embed every chunk from chunk.py and write the vectors and text to the
+on-disk index in data/index/ (see vectorstore.py). This is what retriever.py
+searches: build it once, then retriever.py just queries it.
+
+The index is small (about 1 MB) and is committed to the repo, so a fresh
+checkout or a deployed copy of the app can search straight away without
+re-running the ~8 minute embedding job.
 """
 import json
 from pathlib import Path
 
-import chromadb
-
 from embeddings import embed_texts
+from vectorstore import INDEX_DIR, save
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 CHUNKS_PATH = PROJECT_ROOT / "data" / "processed" / "chunks.jsonl"
-CHROMA_DIR = PROJECT_ROOT / "data" / "processed" / "chroma"
-COLLECTION_NAME = "viveka_chunks"
 
 
 def load_chunks():
@@ -28,17 +29,9 @@ def main():
     print(f"Embedding {len(texts)} chunks via Voyage AI (input_type=document)...")
     embeddings = embed_texts(texts, input_type="document")
 
-    client = chromadb.PersistentClient(path=str(CHROMA_DIR))
-    # Fresh index each run — chunk.py's output can change, so this script
-    # is meant to be re-run from scratch, not appended to.
-    try:
-        client.delete_collection(COLLECTION_NAME)
-    except Exception:
-        pass
-    collection = client.create_collection(COLLECTION_NAME)
-
-    # Chroma metadata values must be str/int/float/bool — lists (verses,
-    # principles) get joined into comma-separated strings.
+    # verses/principles stay comma-joined strings: retriever.py was written
+    # against that shape (it was a ChromaDB restriction originally) and
+    # nothing gained by changing it.
     ids = [c["chunk_id"] for c in chunks]
     metadatas = [
         {
@@ -50,8 +43,8 @@ def main():
         for c in chunks
     ]
 
-    collection.add(ids=ids, embeddings=embeddings, documents=texts, metadatas=metadatas)
-    print(f"Indexed {collection.count()} chunks into '{COLLECTION_NAME}' at {CHROMA_DIR}")
+    save(ids, texts, metadatas, embeddings)
+    print(f"Indexed {len(chunks)} chunks at {INDEX_DIR}")
 
 
 if __name__ == "__main__":
