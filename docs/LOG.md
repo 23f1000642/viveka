@@ -483,3 +483,33 @@ written.
 Still ahead for the UI: the scorecard tab, example questions, proper error
 handling (an unhandled exception currently shows a raw traceback), and
 deployment.
+
+## Day 20 — Oct 7
+Added the scorecard to the UI as a second page ("Audit a feature", at
+`/audit`), using `st.navigation` rather than tabs. Reason: Streamlit pins
+`st.chat_input` to the bottom of the page only when it is at the top level,
+so putting the chat inside a tab would have moved the input box mid-page. A
+separate page also gets its own URL, which helps once it's deployed.
+
+The page opens with an example description pre-filled (labelled as an
+example), so it isn't an empty form. Pressing "Score this feature" shows the
+summary, a horizontal bar chart of the seven scores, and one expander per
+principle with the quoted evidence, the reasoning and a suggested change.
+Principles scoring 2 or below open expanded; the rest start collapsed.
+The scored result is kept in `st.session_state` so opening/closing an expander
+(which re-runs the script) doesn't wipe it.
+
+Tested in a browser: the example scores correctly and renders; the
+distress message sent to the audit page gets the same fixed kind reply (via
+the `OutOfScope` exception) and no scorecard.
+
+**What the UI exposed:** the same example description scored Satya 5/5 and
+Viveka 4/5 today, against Satya 3/5 and Viveka 3/5 in the Day 14 run. That is
+the run-to-run variance from `docs/CHANGELOG.md`, now visible to anyone who
+presses the button twice. Rather than hide it, the page says so under the
+summary: scores can change between runs, read the evidence and not just the
+number, treat it as input to a human review. Measuring the variance properly
+(3 runs per case) is still the open item.
+
+Not done: the bar chart colours every bar the same (the colour lives in the
+expander labels), and the verse-reference problem from Day 19 is still there.
