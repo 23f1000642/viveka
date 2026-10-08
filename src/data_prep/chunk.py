@@ -4,6 +4,7 @@ keyword matching. These tags are a first pass ("weak supervision") — Day 5
 hand-reviews a sample and fixes the mistakes before anything gets trusted.
 """
 import json
+import re
 from pathlib import Path
 from itertools import groupby
 
@@ -41,6 +42,50 @@ def load_records(filename: str):
         return [json.loads(line) for line in f]
 
 
+CHAPTER_RE = re.compile(r"^CHAPTER ([IVXLC]+)$")
+UPANISHAD_HEADINGS = {"Isa-Upanishad", "Katha-Upanishad", "Kena-Upanishad"}
+
+
+def assign_sections(records):
+    """Walk a source's records in order and tag each with the chapter (Gita)
+    or Upanishad it sits in, switching whenever a heading record appears.
+    This only annotates records; chunk boundaries and ids are untouched."""
+    section = None
+    for r in records:
+        text = r["text"].strip()
+        if r["source"] == "gita_arnold":
+            m = CHAPTER_RE.match(text)
+            if m:
+                section = f"Chapter {m.group(1)}"
+        elif r["source"] == "upanishads_paramananda" and text in UPANISHAD_HEADINGS:
+            section = text.replace("-", " ")
+        r["section"] = section
+    return records
+
+
+def _format_numbers(nums: list[int]) -> str:
+    if nums == list(range(nums[0], nums[-1] + 1)):
+        return str(nums[0]) if len(nums) == 1 else f"{nums[0]}-{nums[-1]}"
+    return ", ".join(map(str, nums))
+
+
+def build_reference(source: str, book, sections: list, verses: list) -> str:
+    """A reference a reader could look up, built only from structure the
+    cleaning step really found. The `pNN` verse ids are this project's own
+    paragraph counters, not positions in any printed edition, so they never
+    appear here."""
+    if source == "yoga_sutras_johnston":
+        label = "Book " + book.split()[1].upper() if book else "Introduction"
+        nums = sorted(int(v) for v in verses if v.isdigit())
+        if not nums or not book:
+            return f"{label}, commentary" if book else label
+        noun = "sutra" if len(nums) == 1 else "sutras"
+        has_commentary = any(not v.isdigit() for v in verses)
+        return f"{label}, {noun} {_format_numbers(nums)}" + (" with commentary" if has_commentary else "")
+    present = list(dict.fromkeys(s for s in sections if s))
+    return " to ".join(present) if present else "Introduction"
+
+
 def make_chunks(records):
     chunks = []
     # Group consecutive records by (source, book) so a chunk never crosses
@@ -57,6 +102,9 @@ def make_chunks(records):
                 "source": source,
                 "book": book,
                 "verses": [r["verse"] for r in batch],
+                "reference": build_reference(
+                    source, book, [r.get("section") for r in batch], [r["verse"] for r in batch]
+                ),
                 "text": text,
                 "principles": tag_principles(text),
             })
@@ -66,7 +114,7 @@ def make_chunks(records):
 def main():
     all_chunks = []
     for filename in SOURCE_FILES:
-        records = load_records(filename)
+        records = assign_sections(load_records(filename))
         all_chunks.extend(make_chunks(records))
 
     out_path = PROCESSED_DIR / "chunks.jsonl"
