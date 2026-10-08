@@ -41,6 +41,24 @@ def save(ids, documents, metadatas, embeddings, index_dir: Path = INDEX_DIR) -> 
     (index_dir / RECORDS_FILE).write_text(json.dumps(records, ensure_ascii=False), encoding="utf-8")
 
 
+def update_metadata(entries: dict[str, tuple[str, dict]], index_dir: Path = INDEX_DIR) -> None:
+    """Rewrite each item's metadata without touching the vectors, so a new
+    metadata field doesn't cost a full re-embedding. `entries` maps chunk id
+    to (document text, new metadata). Refuses if the ids or any text differ
+    from what the vectors were computed from: stale vectors would silently
+    return wrong results."""
+    path = index_dir / RECORDS_FILE
+    records = json.loads(path.read_text(encoding="utf-8"))
+    if {item["id"] for item in records["items"]} != set(entries):
+        raise ValueError("chunk ids differ from the index; rebuild it with src/rag/index.py")
+    for item in records["items"]:
+        document, metadata = entries[item["id"]]
+        if document != item["document"]:
+            raise ValueError(f"text changed for {item['id']}; its vector is stale, rebuild the index")
+        item["metadata"] = metadata
+    path.write_text(json.dumps(records, ensure_ascii=False), encoding="utf-8")
+
+
 class Store:
     def __init__(self, index_dir: Path = INDEX_DIR):
         records = json.loads((index_dir / RECORDS_FILE).read_text(encoding="utf-8"))
