@@ -43,8 +43,7 @@ def render_assistant(msg: dict) -> None:
     if msg.get("sources"):
         with st.expander(f"Sources ({len(msg['sources'])})"):
             for s in msg["sources"]:
-                where = f"{s['source_label']}" + (f", {s['book']}" if s["book"] else "")
-                st.markdown(f"**[{s['n']}]** {where}, verse(s) {s['verses']}")
+                st.markdown(f"**[{s['n']}]** {s['source_label']}, {s['reference']}")
                 st.caption(f"“{s['quote']}”")
 
 

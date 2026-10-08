@@ -59,6 +59,7 @@ def retrieve(query: str, top_k: int = 5, fetch_k: int = 20, boost: float = 0.25)
             "source": meta["source"],
             "book": meta["book"],
             "verses": meta["verses"],
+            "reference": meta["reference"],
             "principles": sorted(chunk_principles),
             "raw_distance": dist,
             "adjusted_score": adjusted_score,

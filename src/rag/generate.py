@@ -87,6 +87,7 @@ def generate_answer(query: str, top_k: int = 5) -> dict:
                 "source_label": SOURCE_LABELS.get(c["source"], c["source"]),
                 "book": c["book"],
                 "verses": c["verses"],
+                "reference": c["reference"],
                 "quote": _short_quote(c["text"]),
             }
             for i, c in enumerate(chunks, start=1)
@@ -107,6 +108,6 @@ if __name__ == "__main__":
         print(f"A: {result['answer']}")
         print("Sources:")
         for s in result["sources"]:
-            print(f"  [{s['n']}] {s['source_label']}, {s['book'] or ''} v.{s['verses']}")
+            print(f"  [{s['n']}] {s['source_label']}, {s['reference']}")
             print(f"      \"{s['quote']}\"")
         print()
