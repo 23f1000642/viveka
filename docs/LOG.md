@@ -513,3 +513,44 @@ number, treat it as input to a human review. Measuring the variance properly
 
 Not done: the bar chart colours every bar the same (the colour lives in the
 expander labels), and the verse-reference problem from Day 19 is still there.
+
+## Day 21 — Oct 8
+Fixed the citation problem the UI had exposed, instead of starting the
+example-questions sidebar (that is still to do).
+
+**Cause.** The `verse` ids from `clean.py` are a mix: real sutra numbers where
+the translator numbered them, and this project's own paragraph counters
+(`p91`) everywhere else. A chunk's list of them (`7,p91,8`) therefore pointed
+at nothing a reader could look up in a book.
+
+**Fix, in layers:**
+- `chunk.py` now adds a `reference` to every chunk, built only from structure
+  that really exists in the text: Gita chapter (from the `CHAPTER N` heading
+  records), Upanishad name (from the `Katha-Upanishad` etc. headings), and for
+  the Yoga Sutras the book plus the real sutra numbers, marked "with
+  commentary" when unnumbered commentary paragraphs sit in the chunk. The
+  `pNN` counters never appear. Example: `Book II, sutras 7-8 with commentary`
+  (was `Book Ii`, `7,p91,8`).
+- **Chunk ids, text, tags and verses are unchanged**; I checked all 448
+  against the committed version and only the new field differs. That kept
+  retrieval and every earlier eval result valid.
+- To avoid another 8-minute re-embedding for what is only a metadata change,
+  `index.py --metadata-only` rewrites metadata and keeps the vectors.
+  `vectorstore.update_metadata` refuses if any chunk id is missing or any
+  chunk's text differs from what the vector was computed from (tested both
+  refusals). The `vectors.f32` hash was identical before and after.
+- Threaded `reference` through the retriever and `generate_answer`, and the
+  UI now prints it under each source.
+
+**Spot-checked against the content, not just the code:** "Good Pleasure is the
+pleasure that endures" comes out as Gita Chapter XVIII, and "the good is one
+thing and the pleasant another" as Katha Upanishad; both are right.
+
+**Limits of the new references.** They are only as precise as the structure
+the text offered: Gita and Upanishad citations stop at chapter or Upanishad
+level (no verse numbers, because Arnold's and Paramananda's texts don't
+carry them in a form `clean.py` kept), and Yoga Sutra numbers follow
+Johnston's numbering, which differs from some other editions (see Day 2). A
+chunk that crosses a chapter boundary reads "Chapter III to Chapter IV".
+Whether the cited passages actually support the claims the model attaches
+to them is a separate question this change does not touch.
