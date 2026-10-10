@@ -20,7 +20,7 @@ Full mapping with citations lives in [`docs/MAPPING.md`](docs/MAPPING.md).
 
 ## Architecture
 
-Public-domain texts → clean + chunk (verse-level) → embed (Voyage AI) → ChromaDB → retriever (top-k + principle boost) → Groq API / Llama 3.3 (grounded generation) → chat advisor & ethics scorecard → Streamlit UI.
+Public-domain texts → clean + chunk (verse-level) → embed (Voyage AI) → small on-disk vector index → retriever (top-k + principle boost) → Groq API / gpt-oss-120b (grounded generation) → chat advisor & ethics scorecard → Streamlit UI.
 
 Embeddings are a hosted API call (Voyage AI), not a local model — a local
 `sentence-transformers`/`torch` install triggered a Windows Application
@@ -53,8 +53,10 @@ pip install -r requirements.txt
 cp .env.example .env        # then fill in VOYAGE_API_KEY and GROQ_API_KEY
 python src/data_prep/clean.py
 python src/data_prep/chunk.py
-python src/rag/index.py     # one-time: embeds all chunks into ChromaDB (~8 min on the free tier)
+python src/rag/index.py     # only if you changed the chunks: re-embeds them (~8 min on the free tier).
+                            # The built index (data/index/, 1.4 MB) is already committed.
 streamlit run app.py
+python -m pytest tests      # headless UI tests and error-mapping tests, no network needed
 ```
 
 ## License
