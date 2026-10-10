@@ -15,6 +15,8 @@ import time
 import requests
 from dotenv import load_dotenv
 
+from errors import ConfigError
+
 load_dotenv()
 
 API_URL = "https://api.voyageai.com/v1/embeddings"
@@ -31,7 +33,7 @@ MAX_RETRIES = 4
 def _api_key() -> str:
     key = os.environ.get("VOYAGE_API_KEY")
     if not key:
-        raise RuntimeError(
+        raise ConfigError(
             "VOYAGE_API_KEY not set. Create a .env file in the project root "
             "with a line: VOYAGE_API_KEY=your-key-here (see .env.example)."
         )

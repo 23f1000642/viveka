@@ -7,6 +7,8 @@ import os
 
 from dotenv import load_dotenv
 
+from errors import ConfigError
+
 load_dotenv()
 
 API_URL = "https://api.groq.com/openai/v1/chat/completions"
@@ -19,7 +21,7 @@ MODEL = "openai/gpt-oss-120b"
 def api_key() -> str:
     key = os.environ.get("GROQ_API_KEY")
     if not key:
-        raise RuntimeError(
+        raise ConfigError(
             "GROQ_API_KEY not set. Create a free key at https://console.groq.com/ "
             "and add it to .env as GROQ_API_KEY=... (see .env.example)."
         )

@@ -21,6 +21,7 @@ from llm import API_URL, MODEL, api_key
 from prompts import format_context
 from retriever import retrieve
 from schema import PRINCIPLES, SCORE_SCALE, validate_scorecard
+from errors import ScorecardInvalid
 from scope import OutOfScope, check_scope
 
 MAX_TOKENS = 3000
@@ -122,7 +123,7 @@ def score_feature(description: str) -> dict:
             "content": "That response failed validation: " + "; ".join(problems)
             + ". Return the corrected JSON object only.",
         })
-    raise ValueError(f"scorecard still invalid after {MAX_ATTEMPTS} attempts: {problems}")
+    raise ScorecardInvalid(f"scorecard still invalid after {MAX_ATTEMPTS} attempts: {problems}")
 
 
 if __name__ == "__main__":
