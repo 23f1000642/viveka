@@ -554,3 +554,52 @@ Johnston's numbering, which differs from some other editions (see Day 2). A
 chunk that crosses a chapter boundary reads "Chapter III to Chapter IV".
 Whether the cited passages actually support the claims the model attaches
 to them is a separate question this change does not touch.
+
+## Day 22 — Oct 10
+Error handling. Until now, a rate limit or a timeout would have shown a
+user a raw Python traceback: unreadable, and it exposes file paths and code
+on a public demo.
+
+**What changed**
+- `src/rag/errors.py`: `explain(exc)` logs the full exception for whoever
+  runs the server and returns one plain sentence for the user: busy /
+  rate-limited (429), timeout, can't reach the service, service down (5xx),
+  "demo isn't set up correctly" (401/403 or a missing key), "couldn't produce
+  a valid scorecard", and a generic fallback. Nothing in those messages names
+  a service, a key or a file (a test asserts that).
+- Two small exception classes, `ConfigError` and `ScorecardInvalid`, raised
+  where the key lookups and the scorecard retry loop used to raise bare
+  `RuntimeError`/`ValueError`, so the mapping doesn't depend on matching
+  message text.
+- Order matters: `requests`' `ConnectTimeout` is both a `Timeout` and a
+  `ConnectionError` (checked, not assumed), so Timeout is tested first.
+- UI: both pages catch failures and show them in a red box; on the chat page
+  the error is stored in the history so a reply never silently disappears
+  on the next rerun. Chat box and text area are capped at 1500 characters
+  (it also limits what a stranger can push through the free-tier APIs), and
+  an empty description gets a warning instead of a model call.
+- Moved the two pages out of `app.py` into `ui.py` (app.py now only sets the
+  page config and routes). That was needed for testing: `AppTest.switch_page`
+  only understands file-based pages, and an importable module is simpler to
+  stub anyway.
+
+**Tests (25, all offline).** `tests/test_errors.py` maps 14 exception types to
+their messages. `tests/test_ui.py` runs each page headlessly with the network
+calls stubbed and checks what a user sees: rate-limit, generic failure,
+invalid scorecard, out-of-scope reply, empty input, success (7 expanders,
+only scores of 2 or below opened).
+Because 25 passing on the first try can mean the tests check nothing, I
+broke the error handling on purpose: exactly the 5 error-path tests failed
+and the rest passed; restoring the code brought it back to 25/25.
+
+Also verified in a real browser after the refactor that both routes
+(`/` and `/audit`) still load, since `AppTest` doesn't exercise the router.
+
+**Not covered / honest limits.** I have not triggered a real Groq or Voyage
+429 end to end; the tests simulate one, and the mapping from a real 429
+relies on `requests` attaching the response to `HTTPError`, which is how it
+works. The 1500-character cap is enforced in the UI only, not in
+`generate_answer`/`score_feature` themselves. There is no per-user rate
+limiting, so one visitor can use up the free-tier quota for everyone.
+README's architecture line still said ChromaDB and Llama 3.3 after Days 19
+and 10; fixed those two lines and left the status wording as written.
