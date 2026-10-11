@@ -26,6 +26,11 @@ Things worth knowing about the corpus:
   sutras.
 - The Upanishads are Swami Paramananda's translation of three texts: Isa,
   Katha and Kena. It labels verses with Roman numerals.
+- The Arthashastra is R. Shamasastry's 1915 translation, and only five
+  chapters are in the corpus (Book I chapters II-IV and XIX, Book III chapter I;
+  see `data/raw/SOURCES.md`). It is an OCR of a PDF, so its spelling errors
+  ("vyavahdra", "Nydya") are quoted as they stand. Chapter numbers are
+  Shamasastry's.
 - Quotes keep the translators' wording and spelling. Where the Gutenberg file
   has an obvious typo, it is noted.
 
@@ -41,7 +46,7 @@ applies to AI systems. They are not claims about what the texts say. Where a
 | Ahimsa | yes | Yoga Sutras II.30, II.35 |
 | Satya | yes | Yoga Sutras II.30, II.36 |
 | Dharma | yes | Gita, Chapter II and Chapter XVIII |
-| **Nyaya** | **no** | none (see section 4) |
+| Nyaya | yes, for justice and procedure only | Arthashastra, Book III chapter I (see section 4) |
 | Aparigraha | yes | Yoga Sutras II.30; Isa Upanishad, verse I |
 | Seva | yes | Gita, Chapter III (3.19, 3.20, 3.25) |
 | Viveka | yes, for the idea | Katha Upanishad |
@@ -136,23 +141,41 @@ everywhere, is a Dharma failure by this standard.
 
 ## 4. Nyaya (न्याय) — justice, right reasoning
 
-**In the corpus: nothing.** No passage in the current corpus is a source for
-Nyaya. The plan was for Kautilya's Arthashastra and the Nyaya Sutras to supply
-it; neither was ever ingested (the Arthashastra is a pending manual download,
-see `data/raw/SOURCES.md`). So the passages the app tags `nyaya` are keyword
-matches on words like "law" or "judge" inside passages about other things, and
-an answer that leans on Nyaya has no genuine Nyaya source behind it.
+**In the corpus (checked).** Until 2026-10-11 there was nothing here: Nyaya was
+meant to come from the Arthashastra and the Nyaya Sutras and neither had been
+ingested. The Arthashastra chapters now in the corpus support the *justice and
+procedure* side of the principle. Kautilya's Arthashastra, Book III, chapter I
+(Shamasastry):
+- "IN the cities of Sangrahana, Dronamukha, and Sthaniya, and at places where
+  districts meet, three members acquainted with Sacred Law (dharmasthas) and
+  three ministers of the king (amdtyas) shall carry on the administration of
+  Justice."
+- "It is power and power (danda) alone which, only when exercised by the king
+  with impartiality and in proportion to guilt either over his son or his
+  enemy, maintains both this world and the next."
+- "Self-assertion (svayamvdda) on the part of either of the parties has often
+  been found faulty. Examination (anuyoga), honesty (drjava), evidence (hetu)
+  and asseveration by oath (sapatha)" (the file has a garbled character here)
+  "these alone can enable a man to win his cause."
 
-**Outside the corpus.**
-Nyaya is one of the six classical schools of Indian philosophy, founded on
-Gautama's Nyaya Sutras, concerned with valid means of knowledge (*pramana*) and
-sound inference. The Arthashastra treats *danda-niti*, the ruler's duty to
-administer justice. Not checked against a text here.
+**What the corpus still does not support.** The other sense of Nyaya, the
+school of logic concerned with valid means of knowledge (*pramana*) and sound
+inference, has no source here: the Nyaya Sutras are not in the corpus, and
+not checked against a text.
+
+**A mismatch worth knowing.** In this translation the word itself is used
+differently. The king who administers justice "in accordance with sacred law
+(Dharma), evidence (vyavahdra), history (samsthd) and edicts of kings (Nydya)
+which is the fourth" (Book III, chapter I): here *Nyaya* names the fourth source
+of law, royal edicts, not justice or reasoning in general.
 
 **Reading used here.** The school is about knowledge and inference; in
 everyday language the word also means "justice". This project deliberately
 uses both senses together. That is a design choice, not a classical doctrine
-that justice and reasoning are one thing.
+that justice and reasoning are one thing. The Arthashastra supplies passages
+about impartiality, proportion, evidence and fair examination, which is the
+"due process" half of that choice; the "right reasoning" half rests on no text
+in the corpus.
 
 **Maps to: fairness & due process.** Can the reasoning behind an automated
 decision actually be inspected (interpretability, not just a plausible
@@ -193,6 +216,12 @@ misused.
   for the upholding of thy kind, Action thou should'st embrace."
 - 3.25: "Even as the unknowing toil, wedded to sense, So let the enlightened
   toil, sense-freed, but set To bring the world deliverance, and its bliss."
+
+Also in the corpus, from a different tradition and about rulers: Arthashastra,
+Book I, chapter XIX (Shamasastry): "In the happiness of his subjects lies his
+happiness; in their welfare his welfare; whatever pleases himself he shall not
+consider as good, but whatever pleases his subjects he shall consider as
+good."
 
 **Note.** *Seva* is not the Gita's word. The Gita's ideas here are acting
 without attachment to reward (*nishkama karma*) and acting for the good of the
@@ -240,13 +269,15 @@ regardless of how well it scores on the other six.
 
 ## Open items
 
-1. **Nyaya has no source in the corpus.** Either ingest the Arthashastra (a
-   manual download) or accept it and say so in the app.
+1. **Nyaya's "right reasoning" sense has no source in the corpus** (the Nyaya
+   Sutras are not ingested); only the justice-and-procedure sense does (five
+   Arthashastra chapters). The rest of the Arthashastra (all other chapters and
+   books) was left out deliberately.
 2. **Gita and Upanishad verse numbers are not in the corpus text.** The
    Paramananda file labels verses with Roman numerals, which `clean.py`
    currently discards; they could be recovered.
 3. **External references are unchecked against texts:** the Mahabharata verse
-   number, the Nyaya Sutras, the Arthashastra, the Viveka-Chudamani, Mundaka
-   3.1.6 (confirmed on the web only), and the standard Katha numbering.
+   number, the Nyaya Sutras, the Viveka-Chudamani, Mundaka 3.1.6 (confirmed on
+   the web only), and the standard Katha numbering.
 4. **Whether the app's retrieved passages support the claims the model attaches
    to them** is a separate question this document does not settle.
