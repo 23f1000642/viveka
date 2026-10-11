@@ -41,6 +41,30 @@ def save(ids, documents, metadatas, embeddings, index_dir: Path = INDEX_DIR) -> 
     (index_dir / RECORDS_FILE).write_text(json.dumps(records, ensure_ascii=False), encoding="utf-8")
 
 
+def append(ids, documents, metadatas, embeddings, index_dir: Path = INDEX_DIR) -> None:
+    """Add new items without touching the existing vectors, so adding a new
+    source text costs only the embedding of its own chunks. The vectors are
+    written first and the records last: if this dies in between, Store()
+    sees the length mismatch and refuses to load instead of mis-aligning."""
+    path = index_dir / RECORDS_FILE
+    records = json.loads(path.read_text(encoding="utf-8"))
+    dim = records["dim"]
+    if any(len(e) != dim for e in embeddings):
+        raise ValueError(f"embeddings must have {dim} dims to match the index")
+    clash = {item["id"] for item in records["items"]} & set(ids)
+    if clash:
+        raise ValueError(f"ids already in the index: {sorted(clash)[:3]}")
+    flat = array("f")
+    for e in embeddings:
+        flat.extend(e)
+    with (index_dir / VECTORS_FILE).open("ab") as f:
+        f.write(flat.tobytes())
+    records["items"].extend(
+        {"id": i, "document": d, "metadata": m} for i, d, m in zip(ids, documents, metadatas)
+    )
+    path.write_text(json.dumps(records, ensure_ascii=False), encoding="utf-8")
+
+
 def update_metadata(entries: dict[str, tuple[str, dict]], index_dir: Path = INDEX_DIR) -> None:
     """Rewrite each item's metadata without touching the vectors, so a new
     metadata field doesn't cost a full re-embedding. `entries` maps chunk id

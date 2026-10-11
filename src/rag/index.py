@@ -8,6 +8,9 @@ searches: build it once, then retriever.py just queries it.
                                              `reference` field) and keep the
                                              existing vectors; fails if any
                                              chunk's text changed
+    python src/rag/index.py --add-new        embed only chunks whose id is not
+                                             in the index yet and append them
+                                             (adding a new source text)
 
 The index is small (about 1 MB) and is committed to the repo, so a fresh
 checkout or a deployed copy of the app can search straight away without
@@ -18,7 +21,7 @@ import sys
 from pathlib import Path
 
 from embeddings import embed_texts
-from vectorstore import INDEX_DIR, save, update_metadata
+from vectorstore import INDEX_DIR, Store, append, save, update_metadata
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 CHUNKS_PATH = PROJECT_ROOT / "data" / "processed" / "chunks.jsonl"
@@ -49,6 +52,18 @@ def main():
     if "--metadata-only" in sys.argv:
         update_metadata({c["chunk_id"]: (c["text"], build_metadata(c)) for c in chunks})
         print(f"Updated metadata for {len(chunks)} chunks; vectors unchanged")
+        return
+
+    if "--add-new" in sys.argv:
+        have = {item["id"] for item in Store().items}
+        new = [c for c in chunks if c["chunk_id"] not in have]
+        if not new:
+            print("Nothing new to add.")
+            return
+        print(f"Embedding {len(new)} new chunks via Voyage AI (input_type=document)...")
+        embeddings = embed_texts([c["text"] for c in new], input_type="document")
+        append([c["chunk_id"] for c in new], [c["text"] for c in new], [build_metadata(c) for c in new], embeddings)
+        print(f"Appended {len(new)} chunks; the index now holds {len(have) + len(new)}")
         return
 
     texts = [c["text"] for c in chunks]
