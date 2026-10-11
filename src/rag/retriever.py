@@ -38,14 +38,23 @@ def detect_query_principles(query: str):
     return [p for p, keywords in QUERY_KEYWORDS.items() if any(k in lowered for k in keywords)]
 
 
-def retrieve(query: str, top_k: int = 5, fetch_k: int = 20, boost: float = 0.25):
+def retrieve(query: str, top_k: int = 5, fetch_k: int = 20, boost: float = 0.0, query_vector=None):
     """Fetch fetch_k candidates by raw similarity, then re-rank the top_k by
     subtracting `boost` from a candidate's distance for every principle it
-    shares with the query (lower distance = more similar = ranked higher)."""
+    shares with the query (lower distance = more similar = ranked higher).
+
+    The default boost is 0 (off). It was 0.25 when only 448 chunks existed and
+    raw similarity looked weak (Day 8). With the Arthashastra added, a hand-made
+    check (src/eval/run_retrieval_check.py) found the boost pushed that source
+    OUT of the top 5 on justice questions (5 of 8 vs 7 of 8 without it) and let it
+    leak into unrelated ones, because the chunk tags it relies on are noisy
+    keyword matches. The mechanism is kept for experiments; see docs/LOG.md.
+    `query_vector` lets a caller that already embedded the query (the
+    retrieval check embeds many at once) skip the API call."""
     store = _get_store()
 
     query_principles = set(detect_query_principles(query))
-    q_emb = embed_texts([query], input_type="query")[0]
+    q_emb = query_vector if query_vector is not None else embed_texts([query], input_type="query")[0]
 
     candidates = []
     for hit in store.query(q_emb, fetch_k):
