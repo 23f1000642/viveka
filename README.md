@@ -31,6 +31,34 @@ specific model vendor (`generate.py` isolates the one function that would
 need to change to swap providers again). See `docs/LOG.md` (Days 8 and 10)
 for both stories.
 
+## What it looks like
+
+Screenshots of the running app. The model's wording and the scores vary from
+run to run.
+
+**Ask a question.** A cited answer: a verdict, the principles it applies, and
+numbered references into the texts.
+
+![A cited answer to "Is it okay for a recommendation system to be designed to be addictive?"](docs/images/ask-answer.jpg)
+
+Each reference opens to the translator, a location a reader can look up
+(chapter, Upanishad, or sutra), and the quoted passage.
+
+![The sources panel, listing Upanishad, Yoga Sutra and Bhagavad Gita passages with their references](docs/images/ask-sources.jpg)
+
+**Audit a feature.** Describe an AI feature and get a 1-5 score on each of the
+seven principles. Every score quotes the words of the description it rests on.
+
+![The scorecard summary and a bar chart of seven scores](docs/images/audit-summary.jpg)
+
+![Expanded scorecard entries showing the quoted evidence, the reasoning and a suggested change](docs/images/audit-detail.jpg)
+
+**Messages that aren't about AI ethics** (for example someone describing their
+own distress) are not sent to the advisor. They get a fixed, kind reply that
+points to a person and a crisis-line directory.
+
+![The reply shown to a message about feeling ignored](docs/images/scope-guard.jpg)
+
 ## Status
 Till now i have reached at  the full RAG pipeline works end-to-end: retrieval,
 grounded generation, and cited answers.
