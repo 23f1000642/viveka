@@ -632,3 +632,45 @@ scores vary between runs; the screenshots are one sample, not the typical
 result.
 
 Not done from the roadmap's Day 23: a GIF. Still screenshots only.
+
+## Day 25 — Oct 11
+Continuous integration. `.github/workflows/tests.yml` runs `pytest` on every
+push to `main` and on pull requests, on a clean Ubuntu machine with only
+`requirements.txt` installed, for Python 3.12 and 3.13. The point of a clean
+machine is to catch what works locally only because something was already
+installed. No API keys are set in CI on purpose; the 25 tests stub every
+network call.
+
+**What happened.** First run: success on both Python versions in 31s. It also
+carried two annotations I did not want to ignore: `checkout@v4` and
+`setup-python@v5` run on Node 20, which GitHub is retiring, and `ubuntu-latest`
+moves to Ubuntu 26 on 2026-10-19, which would change the CI environment with
+no commit saying so. Looked up the current releases (`checkout@v7`,
+`setup-python@v7`) and read the v7 notes before bumping (it removes the
+`pip-install` input and EOL Pythons; neither is used here), and pinned
+`ubuntu-24.04`. Second run: success, no annotations.
+
+**The README now has a live badge** ("tests - passing"); I checked it renders
+on github.com and reads passing, not just that the markdown is valid.
+
+**What I could not verify.** GitHub does not show job logs to a signed-out
+visitor, so I could not read the "25 passed" line from CI. What I do know: the
+`pytest` step succeeded on both versions, and pytest exits non-zero if it
+collects no tests, so some ran and none failed. The count itself is only
+confirmed locally (25). I also have not seen CI go red; a workflow that can
+never fail would be worthless, but forcing a failure meant pushing a broken
+commit to `main` (a red commit in a public history), so I didn't.
+
+**Two accuracy problems found while writing the README badge, one fixed:**
+- Fixed: the README's first paragraph said the corpus includes the
+  Arthashastra. It was never ingested (Day 2 only noted it as a manual
+  download); the corpus is the Gita, the Yoga Sutras and three Upanishads.
+- **Not fixed, and it matters:** `docs/MAPPING.md`, the document the whole
+  project is built on, still says its citations are paraphrases from memory
+  and that "Day 2" would replace them with checked citations. That never
+  happened. Day 2 fetched the texts but nobody went back through the seven
+  mappings to verify each verse reference. It also names translators (Woods'
+  Yoga Sutras, Shamasastry's Arthashastra) that are not the ones in the
+  corpus (Johnston's, and no Arthashastra). Until this is done, the project's
+  central claim rests on unverified citations. This is the most important open
+  item.
