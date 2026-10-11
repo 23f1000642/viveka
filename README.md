@@ -1,5 +1,7 @@
 # Viveka (विवेक)
 
+[![tests](https://github.com/23f1000642/viveka/actions/workflows/tests.yml/badge.svg)](https://github.com/23f1000642/viveka/actions/workflows/tests.yml)
+
 An AI ethics advisor built on a retrieval corpus of classical Indian philosophy — the Bhagavad Gita, the Yoga Sutras, and the Arthashastra — reasoning about modern AI harm, transparency, and fairness through categories that predate the field by two thousand years.
 
 ## Why this project
