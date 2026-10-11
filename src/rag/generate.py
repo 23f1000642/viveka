@@ -31,6 +31,7 @@ SOURCE_LABELS = {
     "gita_arnold": "Bhagavad Gita (trans. Edwin Arnold)",
     "yoga_sutras_johnston": "Yoga Sutras of Patanjali (trans. Charles Johnston)",
     "upanishads_paramananda": "The Upanishads (trans. Swami Paramananda)",
+    "arthashastra_shamasastry": "Arthashastra of Kautilya (trans. R. Shamasastry)",
 }
 
 
