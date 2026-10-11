@@ -1,0 +1,25 @@
+name: tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  pytest:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+      # A clean machine with only requirements.txt installed: this is what catches
+      # a package the code imports but requirements.txt forgot.
+      - run: pip install -r requirements.txt
+      # No API keys are set here on purpose. The tests stub every network call.
+      - run: python -m pytest tests -q
