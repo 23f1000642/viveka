@@ -59,7 +59,8 @@ def ask_page() -> None:
     st.title("Viveka 🪔")
     st.caption(
         "Ask about the ethics of an AI system or feature. Answers are grounded in "
-        "passages from the Bhagavad Gita, the Yoga Sutras and the Upanishads, and "
+        "passages from the Bhagavad Gita, the Yoga Sutras, three Upanishads and "
+        "parts of the Arthashastra, and "
         "cite them. These texts are used as analogy, not as engineering instruction."
     )
 
