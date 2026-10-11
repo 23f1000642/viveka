@@ -732,3 +732,78 @@ actual texts.
 **Open decision.** What to do about Nyaya: ingest the Arthashastra (Book III,
 on courts and procedure, is genuinely about justice) or leave the corpus and
 tell users plainly that Nyaya answers have no source text behind them.
+
+## Day 26 — Oct 11
+The user chose to ingest the Arthashastra, so Nyaya gets a real source.
+
+**Getting it.** `curl` on archive.org's full-text endpoint worked (it did not on
+sacred-texts.com on Day 2): 1.1 MB, all 15 books, Shamasastry's 1915 translation.
+It is an OCR of a PDF: runs of spaces, "[Thus ends Chapter ...]" footers, OCR
+spellings like "Nydya", and book boundaries that are not labelled in the body.
+
+**Scope: five chapters, not the whole book.** Book I chapters II-IV (the
+science of government by punishment) and XIX (the duties of a king), and Book
+III chapter I (judicature: courts, evidence, procedure). The rest (spies, war,
+marriage and inheritance law, slaves) would only put passages into retrieval
+that have nothing to do with AI-ethics questions. Recorded in `SOURCES.md`.
+`clean_arthashastra` counts books from the "CHAPTER I." headings and asserts
+that Book II and Book III start where their titles say, so a changed OCR fails
+loudly instead of labelling the wrong book. The three existing sources'
+cleaned files and their 448 chunks are byte-identical afterwards (checked).
+
+**A bug found on the way:** the first chunking run produced a chunk labelled
+"Book I, Chapters IV to XIX": chapters V-XVIII were skipped, so the last record
+of IV and the first of XIX sat next to each other and got joined into one
+chunk of text from two unrelated places. Fixed by grouping on chapter too;
+covered by a test, and I broke the fix on purpose to confirm that test fails.
+
+**Indexing.** New `index.py --add-new` embeds only the 33 new chunks (about 45
+seconds instead of 8 minutes) and `vectorstore.append` adds them; the hash of
+the first 448 vectors is identical before and after. The index is now 481
+chunks, 1.5 MB.
+
+**The important finding: ingesting it changed nothing at first.** For
+justice questions ("should a person affected by an automated decision be able
+to contest it?") no Arthashastra passage appeared in the top 5. Measured why:
+by raw similarity the Arthashastra ranks 1st-3rd on most of them, but
+`retrieve()` re-ranks with the Day 8 principle-tag boost, and that boost
+lifted noisy-tagged Upanishad and Gita chunks above it. Built a small check
+(`src/eval/run_retrieval_check.py`: 8 justice questions, 6 unrelated controls,
+boost 0 / 0.1 / 0.25, one embedding call):
+
+| boost | justice questions with an Arthashastra passage in the top 5 | controls (mean per query) |
+|---|---|---|
+| 0.0 | 7 of 8 | 0.33 |
+| 0.1 | 6 of 8 | 0.67 |
+| 0.25 (was the default) | 5 of 8 | 0.67 |
+
+So the boost made it worse on both counts. Set the default to 0 and kept the
+mechanism for experiments. This reverses a Day 8 decision, and the reason is
+the same thing that was true then and I did not weigh enough: the chunk tags
+are keyword matches (one "nyaya" tag landed on a passage about agriculture),
+so a boost built on them is noisy. Caveats: both query sets are mine and
+"relevant" means "comes from the Arthashastra", so this shows direction, not
+accuracy; I did not measure whether the boost helped any other principle; and
+the earlier scorecard eval, the screenshots and the Day 8-20 retrieval
+numbers were produced with boost 0.25 and without the Arthashastra, and have
+not been re-run.
+
+**End to end:** "should an algorithm that wrongly flags an innocent person be
+answerable to an impartial reviewer, and the penalty proportionate?" now gets
+an answer citing "Arthashastra of Kautilya (trans. R. Shamasastry), Book III,
+Chapter I" and "Book I, Chapter IV". Checked the phrases the model quoted
+("five times the amount", "ten times", "due consideration", "contempt")
+against the processed text: all exist. What I could not check is whether the
+model read them correctly (for instance what "parokta" refers to).
+
+**MAPPING.md** updated: Nyaya now has quotes from Book III chapter I
+("administration of Justice", the king's power exercised "with impartiality and
+in proportion to guilt", honest examination and evidence). All 20 corpus quotes
+in the document match the raw files verbatim (re-ran the checker). One
+unexpected thing it records: in this translation *Nydya* is the name of the
+fourth source of law, "edicts of kings", not "justice" or "reasoning", so the
+project's reading of the word is still a design choice. The "right reasoning"
+sense of Nyaya (the logic school) still has no source.
+
+**Tests:** 18 new (43 in total) for reference building, chapter-bounded
+chunking and the Arthashastra cleaner.
