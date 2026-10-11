@@ -15,6 +15,7 @@ SOURCE_FILES = [
     "gita_arnold.jsonl",
     "yoga_sutras_johnston.jsonl",
     "upanishads_paramananda.jsonl",
+    "arthashastra_shamasastry.jsonl",
 ]
 
 # Keyword lexicon for weak-supervision tagging. Matching is a case-insensitive
@@ -59,6 +60,8 @@ def assign_sections(records):
                 section = f"Chapter {m.group(1)}"
         elif r["source"] == "upanishads_paramananda" and text in UPANISHAD_HEADINGS:
             section = text.replace("-", " ")
+        elif r["source"] == "arthashastra_shamasastry":
+            section = f"{r['book']}, Chapter {r['chapter']}"  # clean.py stores the chapter on each record
         r["section"] = section
     return records
 
@@ -83,7 +86,14 @@ def build_reference(source: str, book, sections: list, verses: list) -> str:
         has_commentary = any(not v.isdigit() for v in verses)
         return f"{label}, {noun} {_format_numbers(nums)}" + (" with commentary" if has_commentary else "")
     present = list(dict.fromkeys(s for s in sections if s))
-    return " to ".join(present) if present else "Introduction"
+    if not present:
+        return "Introduction"
+    # "Book I, Chapter II" + "Book I, Chapter III" -> "Book I, Chapters II to III"
+    if len(present) > 1 and all(", Chapter " in s for s in present) and len({s.split(", Chapter ")[0] for s in present}) == 1:
+        book = present[0].split(", Chapter ")[0]
+        numerals = [s.split(", Chapter ")[1] for s in present]
+        return f"{book}, Chapters {numerals[0]} to {numerals[-1]}"
+    return " to ".join(present)
 
 
 def make_chunks(records):
@@ -91,7 +101,11 @@ def make_chunks(records):
     # Group consecutive records by (source, book) so a chunk never crosses
     # a book boundary — an Ahimsa chunk shouldn't accidentally splice in a
     # sentence from an unrelated book.
-    for (source, book), group in groupby(records, key=lambda r: (r["source"], r["book"])):
+    # The Arthashastra records carry a "chapter" and only some chapters were
+    # ingested, so adjacent records can come from chapters that are far apart
+    # in the book: never let a chunk span two chapters. (Other sources have no
+    # "chapter" field, so their grouping is unchanged.)
+    for (source, book, _), group in groupby(records, key=lambda r: (r["source"], r["book"], r.get("chapter"))):
         group = list(group)
         for i in range(0, len(group), CHUNK_SIZE):
             batch = group[i:i + CHUNK_SIZE]
