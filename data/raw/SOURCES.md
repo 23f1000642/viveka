@@ -14,13 +14,18 @@ Fetched by: `curl -sL https://www.gutenberg.org/cache/epub/<id>/pg<id>.txt`
 
 ## Verified so far
 
-- `yogasutras_johnston_raw.txt` — confirms the *ahimsa* (non-injury) passage
-  used in `docs/MAPPING.md` §1, though Johnston's numbering marks its effects
-  at sutra 2.35, not 2.30 (translators number the Yamas' *listing* vs. their
-  *elaboration* differently — needs a second translation cross-checked before
-  the final citation goes in the app).
-- `upanishads_paramananda_raw.txt` — contains the full Isa-Upanishad, needed
-  for the Aparigraha citation in `docs/MAPPING.md` §5.
+- `yogasutras_johnston_raw.txt` — Johnston's numbering matches the standard
+  one: II.30 is the list of Commandments (non-injury, truthfulness, abstaining
+  from stealing, impurity, covetousness) and II.35 is the *effect* of perfected
+  non-injury. An earlier version of this note claimed the numbering differed
+  (2.35 vs 2.30); that was a mistake: the two numbers are two different
+  sutras, not two numberings of one. Contains a Gutenberg typo ("nom injury"
+  in II.30).
+- `upanishads_paramananda_raw.txt` — contains the full Isa Upanishad, whose
+  opening verse (labelled "I") is quoted in `docs/MAPPING.md` section 5. This
+  translation labels verses with Roman numerals.
+- Every quoted passage in `docs/MAPPING.md` marked "in the corpus" was checked
+  verbatim against these three files on 2026-10-11.
 
 ## Still needed (not blocking — pick up on a later buffer day)
 
