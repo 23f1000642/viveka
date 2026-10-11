@@ -603,3 +603,32 @@ works. The 1500-character cap is enforced in the UI only, not in
 limiting, so one visitor can use up the free-tier quota for everyone.
 README's architecture line still said ChromaDB and Llama 3.3 after Days 19
 and 10; fixed those two lines and left the status wording as written.
+
+## Day 23 — Oct 11
+Screenshots for the README. Took five from the running app: a cited answer,
+its expanded sources panel, the scorecard summary with the chart, the
+expanded scorecard entries, and the reply to a distress message. They are in
+`docs/images/` and shown in a new "What it looks like" README section, placed
+above the status text so the user's own wording there is untouched.
+
+Verified on github.com that all five images load (checked `naturalWidth` on
+each `<img>`), since a wrong relative path only shows alt text and is easy
+to miss locally.
+
+The user had a blank white page when they opened the app because I had
+stopped the dev server after the previous test; a Streamlit page with no
+server behind it is an empty shell. Left the server running this time and
+gave the command to start it themselves with the project's `.venv` Python
+(their terminal defaults to a conda `base` Python that lacks the packages).
+
+Capture notes: the in-app browser's screenshots time out intermittently
+while a page is still drawing, and a custom viewport size (1000x1100) made
+later screenshots come out cropped or tiny; the default desktop viewport was
+reliable. Not a project problem, just a tooling one.
+
+One real observation from the retake: the same example description scored
+Satya 2/5 this time, 5/5 on Oct 7 and 3/5 on Day 14. The README says the
+scores vary between runs; the screenshots are one sample, not the typical
+result.
+
+Not done from the roadmap's Day 23: a GIF. Still screenshots only.
