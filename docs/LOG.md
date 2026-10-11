@@ -674,3 +674,61 @@ commit to `main` (a red commit in a public history), so I didn't.
   corpus (Johnston's, and no Arthashastra). Until this is done, the project's
   central claim rests on unverified citations. This is the most important open
   item.
+
+## Day 24 (buffer day, done out of order) — Oct 11
+Did the verification Day 25 flagged: checked `docs/MAPPING.md` against the
+actual text files, then rewrote it.
+
+**Method.** For each citation that points into the corpus, found the passage
+in the cleaned records (using the new chapter/Upanishad tags to place it) and
+read it. Then a mechanical pass: split the document on `"` and checked every
+quoted string of 15+ characters against the three raw files (whitespace and
+curly quotes normalised). For references to texts that are *not* in the corpus
+(Mahabharata, Mundaka, Nyaya Sutras, Arthashastra, Viveka-Chudamani), searched
+the web where it was cheap to.
+
+**What it found**
+- **Nyaya has no source in the corpus.** It was supposed to come from the
+  Nyaya Sutras and the Arthashastra; neither was ever ingested. The app's
+  "nyaya" tags on chunks are keyword matches ("law", "judge") on passages about
+  something else. The rewritten document says this plainly.
+- **One claim was unsupported and is removed:** that classical commentary
+  pairs truth with "speak truth that is also beneficial". The corpus commentary
+  on II.36 says something different ("His word is not in vain").
+- **My Day 2 note about Yoga Sutras numbering was wrong.** II.30 (the list of
+  Commandments) and II.35 (the effect of non-injury) are two different sutras
+  in both Johnston and the standard numbering, not two numberings of one thing.
+  Corrected in `data/raw/SOURCES.md`.
+- **One real misquote:** II.31, where I had dropped the word "are". Caught by the
+  mechanical check, fixed. After the fix every passage the document marks "in
+  the corpus" matches the raw files verbatim, with one known exception: II.30,
+  where the Gutenberg file itself contains the typo "nom injury" (noted in the
+  document).
+- Names of translators that are not in the corpus (Woods' Yoga Sutras,
+  Shamasastry's Arthashastra) were removed.
+- Several interpretive claims were labelled as the project's own ("Reading used
+  here") instead of being presented as the texts' teaching: Satya covering what
+  a system *implies*; Nyaya meaning both knowledge and justice (a design choice,
+  not a classical doctrine); "seva" not being the Gita's word; Dharma's link to
+  caste-based svadharma, which the project does not adopt; and the
+  Viveka-Chudamani being traditionally, not certainly, Shankara's.
+- Web-checked: Mundaka 3.1.6 is *satyameva jayate* (sources agree); the phrase
+  *ahimsa paramo dharma* is in the Anushasana Parva, but the verse number
+  differs between editions (13.117.37 vs 13.116.25), so no firm number is given.
+
+**A bug in my own checking, worth recording.** The first version of the quote
+checker reported only 7 quoted strings and 0 matches. Seven was too few for
+this document; the regex excluded newlines and many quotes wrap across lines,
+so the pairing of opening and closing quotes shifted. Rewritten to split on
+`"` and take every second segment, it found 25. A checker that reports
+"0 verified" is as suspect as one that reports "all verified".
+
+**Limits.** Matching Arnold's Gita passages to standard verse numbers (2.47,
+18.47, 3.19, 3.20, 3.25) is by content, because Arnold gives no verse
+numbers. The standard Katha numbering (1.2.1, 1.3.6) comes from outside the
+files and is flagged as such. External references remain unchecked against
+actual texts.
+
+**Open decision.** What to do about Nyaya: ingest the Arthashastra (Book III,
+on courts and procedure, is genuinely about justice) or leave the corpus and
+tell users plainly that Nyaya answers have no source text behind them.
