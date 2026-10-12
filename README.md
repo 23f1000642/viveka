@@ -89,6 +89,28 @@ streamlit run app.py
 python -m pytest tests      # headless UI tests and error-mapping tests, no network needed
 ```
 
+## Deploying
+
+The app is meant for Streamlit Community Cloud's free tier. New app, repository
+`23f1000642/viveka`, branch `main`, main file `app.py`, Python 3.12. Under
+**Advanced settings → Secrets**, paste (top-level keys; Streamlit exposes them to
+the app as environment variables, which is what the code reads):
+
+```toml
+VOYAGE_API_KEY = "your-voyage-key"
+GROQ_API_KEY = "your-groq-key"
+```
+
+The search index (`data/index/`, 1.5 MB) is committed, so a deployed copy needs
+no embedding step.
+
+**Limits of a live demo on free tiers.** Each question costs one Voyage embedding
+call and two Groq calls (a scope check, then the answer); an audit costs one Voyage
+call and two or three Groq calls. A free Voyage account without a payment method
+allows 3 requests per minute across *all* visitors, so a few people asking at once
+will hit it. When a limit is hit the app shows a short "busy, try again in a minute"
+message instead of an error.
+
 ## License
 
 MIT — see [LICENSE](LICENSE).
