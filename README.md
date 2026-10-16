@@ -22,16 +22,34 @@ Full mapping with citations lives in [`docs/MAPPING.md`](docs/MAPPING.md).
 
 ## Architecture
 
-Public-domain texts → clean + chunk (verse-level) → embed (Voyage AI) → small on-disk vector index → retriever (top-k + principle boost) → Groq API / gpt-oss-120b (grounded generation) → chat advisor & ethics scorecard → Streamlit UI.
+```mermaid
+flowchart LR
+    U["User message"] --> S{"Scope check"}
+    S -- "personal distress" --> D["Fixed kind reply"]
+    S -- "off topic" --> O["Fixed 'what I do' reply"]
+    S -- "AI ethics" --> E["Embed the query<br/>(Voyage AI)"]
+    E --> V["Nearest of 481 chunks<br/>(on-disk vector store)"]
+    V --> G["Cited answer"]
+    V --> C["7-principle scorecard"]
+    G --> L["Groq: gpt-oss-120b"]
+    C --> L
+    L --> UI["Streamlit UI"]
+```
 
-Embeddings are a hosted API call (Voyage AI), not a local model — a local
-`sentence-transformers`/`torch` install triggered a Windows Application
-Control policy that blocked scikit-learn's compiled DLL outright. Generation
-runs on Groq's free tier rather than the Claude API — a fresh Anthropic key
-ships with zero free credits, and the RAG architecture doesn't depend on a
-specific model vendor (`generate.py` isolates the one function that would
-need to change to swap providers again). See `docs/LOG.md` (Days 8 and 10)
-for both stories.
+A message is first sorted by a scope check, so someone describing their own
+distress gets a fixed, reviewed reply instead of an AI-ethics answer. Everything
+else is embedded, matched against passages from the corpus, and answered or scored
+from those passages with citations. The full flow, the offline pipeline that builds
+the index, and the reasoning behind each decision are in
+[`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
+
+Two of those decisions came from a locked-down Windows machine rather than from
+design preference: embeddings are a hosted API call (a local model's scikit-learn
+DLL was blocked by an Application Control policy), and the vector index is a small
+standard-library store (ChromaDB's gRPC DLL was blocked later). Generation runs on
+Groq's free tier rather than the Claude API, since a fresh Anthropic key ships with
+no free credits; `src/rag/llm.py` is the one place that names the provider. See
+`docs/LOG.md` (Days 8, 10 and 19) for the stories.
 
 ## What it looks like
 
