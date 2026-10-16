@@ -7,7 +7,7 @@ pieces are the way they are. Each decision points at the day in
 ## At request time
 
 ```mermaid
-flowchart LR
+flowchart TD
     U["User message"] --> S{"scope.py<br/>in scope?"}
     S -- "personal distress" --> D["Fixed kind reply<br/>no retrieval"]
     S -- "off topic" --> O["Fixed 'what I do' reply"]

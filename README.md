@@ -23,7 +23,7 @@ Full mapping with citations lives in [`docs/MAPPING.md`](docs/MAPPING.md).
 ## Architecture
 
 ```mermaid
-flowchart LR
+flowchart TD
     U["User message"] --> S{"Scope check"}
     S -- "personal distress" --> D["Fixed kind reply"]
     S -- "off topic" --> O["Fixed 'what I do' reply"]
