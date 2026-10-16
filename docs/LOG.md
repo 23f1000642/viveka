@@ -807,3 +807,39 @@ sense of Nyaya (the logic school) still has no source.
 
 **Tests:** 18 new (43 in total) for reference building, chapter-bounded
 chunking and the Arthashastra cleaner.
+
+## Day 27 — Oct 12 and Oct 16: deploy preparation, architecture docs
+**Oct 12, before deploying.** Scanned all of git history for key-shaped strings
+(`gsk_...`, `pa-...`, `sk-ant-...`, and every `*_API_KEY=` line that ever existed):
+only the placeholders in `.env.example` and error messages; `.env` was never
+tracked. Cloned the repo from GitHub into a clean folder and checked what a
+deployed copy would get: `vectors.f32` byte-identical, the store loads 481 chunks,
+no `.env`, 43/43 tests pass with no keys. Checked Streamlit's docs (not memory):
+top-level keys pasted into the Secrets box become environment variables, which is
+what the code reads, so no code change was needed. Added a "Deploying" section to
+the README, including that the free Voyage tier (3 requests a minute) is shared by
+every visitor.
+
+**Deployment itself is not done.** It needs the user's GitHub login on Streamlit
+Community Cloud and their keys in the Secrets box; neither belongs to me. As of
+Oct 16 no deployed URL exists in the repo or has been sent.
+
+**Oct 16, while waiting.** Wrote `docs/ARCHITECTURE.md` (request-time diagram,
+offline pipeline, module map, each decision with its reason and the day it comes
+from, and a list of known limits) and put the request-time diagram in the README,
+which also fixed two stale statements there ("principle boost" after it was turned
+off, and `generate.py` as the provider boundary after `llm.py` took that role).
+Everything in them was taken from the code and the file list, not from memory
+(`git ls-files`, 481 chunks, 43 tests). One over-claim caught before committing: I
+had written that the Day 8 retrieval numbers were "reproduced to three decimals";
+it was four of the five queries, so the doc says that.
+
+Mermaid does not fail loudly: a bad diagram shows as a code block or an empty box
+and the markdown still looks valid. Checked on github.com that both render. The
+first request-time diagram, laid out left to right with 12 boxes, rendered but was
+squeezed to about 180px tall with tiny text, which is technically rendered and
+practically unreadable; switched it to top-down.
+
+**Still open for the finish:** deploy and test the live URL; add the URL to the
+README; set the repository's About description and topics (it is blank on
+github.com); publish a v1.0.0 release; write the post.
